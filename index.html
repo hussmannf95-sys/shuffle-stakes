@@ -325,10 +325,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
       <div class="picker-loading">⏳ Loading players…</div>
     </div>
     <div class="picker-divider"><span>not listed · enter manually</span></div>
-    <div class="guest-row">
-      <input type="text" class="guest-input" id="nameIn" placeholder="Your name" autocomplete="off" maxlength="30" inputmode="text">
-      <button class="guest-btn" id="loginBtn">Enter →</button>
-    </div>
+    <button class="btn btn-outline" id="loginBtn" style="max-width:400px;width:100%">✏️ Enter name manually</button>
     <p class="login-note" style="margin-top:.75rem">Same name = same account &nbsp;·&nbsp; 100 🪙 start</p>
   </div>
     <div class="copyright">© 2026 hdhshuffle · all rights reserved</div>
@@ -363,8 +360,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
         <div class="admin-pin-gate">
           <div class="icon">🔐</div>
           <h3>Admin Area</h3>
-          <div class="field"><label>Admin PIN</label><input type="password" id="adminPinIn" placeholder="PIN" maxlength="30"></div>
-          <button class="btn btn-gold" id="adminPinBtn" style="max-width:240px">Unlock</button>
+          <button class="btn btn-gold" id="adminPinBtn" style="max-width:240px">Enter PIN 🔑</button>
         </div>
       </div>
       <div id="adminPanel" style="display:none"></div>
@@ -1231,8 +1227,10 @@ function toast(msg,type='info'){
 document.addEventListener('DOMContentLoaded',()=>{
   buildPicker();
 
-  document.getElementById('loginBtn').onclick=()=>login(document.getElementById('nameIn').value);
-  document.getElementById('nameIn').addEventListener('keydown',e=>{if(e.key==='Enter')login(e.target.value);});
+  document.getElementById('loginBtn').onclick=()=>{
+    const name=window.prompt('Your name:');
+    if(name) login(name);
+  };
 
   document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
@@ -1242,14 +1240,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('betModal').onclick=e=>{if(e.target===document.getElementById('betModal'))closeBet();};
 
   document.getElementById('adminPinBtn').onclick=()=>{
-    if(document.getElementById('adminPinIn').value===S.adminPin){
+    const pin=window.prompt('Admin PIN:');
+    if(pin===null) return;
+    if(pin===S.adminPin){
       S.adminOk=true;
       document.getElementById('adminGate').style.display='none';
       document.getElementById('adminPanel').style.display='block';
       renderAdmin();
     } else toast('Wrong PIN','error');
   };
-  document.getElementById('adminPinIn').onkeydown=e=>e.key==='Enter'&&document.getElementById('adminPinBtn').click();
 });
 </script>
 </body>
