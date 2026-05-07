@@ -851,6 +851,23 @@ function renderAdmin(){
     return`<option value="${id}">${esc(l)}</option>`;
   }).join('');
 
+  const pairOpts=(()=>{
+    let o='';
+    const dayLabels={1:'Day 1 (R1+R2)',2:'Day 2 (R3+R4)',3:'Day 3 (R5+R6)'};
+    for(const [day,label] of Object.entries(dayLabels)){
+      o+=`<optgroup label="${label}">`;
+      for(const id of SCAFFOLD){
+        const info=parseId(id);
+        if(!info||info.day!==+day) continue;
+        const p=parsePairing(id,S.pairings[id]);
+        const ok=p?.player1&&p.player1!=='TBD'&&p.player1!=='?';
+        o+=`<option value="${id}">${ok?'✓':'–'} ${id}</option>`;
+      }
+      o+='</optgroup>';
+    }
+    return o;
+  })();
+
   el.innerHTML=`
   <div class="admin-sec">
     <h3>📅 Release Days for Betting</h3>
@@ -878,6 +895,16 @@ function renderAdmin(){
       <div class="stat-chip">Results: <strong>${Object.keys(S.results).length}</strong></div>
       <div class="stat-chip">Open for bets: <strong>${openIds.length}</strong></div>
     </div>
+  </div>
+
+  <div class="admin-sec">
+    <h3>📋 Set Pairings</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Spielernamen direkt eintragen — ersetzt TBD-Einträge sofort.</p>
+    <div class="admin-row">
+      <select id="aPairMatchSel">${pairOpts}</select>
+    </div>
+    <div id="aPairFields" style="margin-top:.35rem"></div>
+    <button class="btn btn-gold" id="aPairBtn" style="margin-top:.4rem">Save Pairing →</button>
   </div>
 
   <div class="admin-sec">
@@ -933,6 +960,9 @@ function renderAdmin(){
     toast(`Betting unlocked for Day ${v} ✓`,'success');
     renderAdmin();
   });
+  document.getElementById('aPairMatchSel')?.addEventListener('change',updatePairFields);
+  updatePairFields();
+  document.getElementById('aPairBtn')?.addEventListener('click',adminSavePairing);
   const matchSel=document.getElementById('aMatchSel');
   matchSel?.addEventListener('change',updateWinnerRow);
   updateWinnerRow();
@@ -986,6 +1016,53 @@ async function adminSub(){
   const field=side==='player1'?'player1':'player2';
   await db.ref(`${PATH.pairings}/${id}/${field}`).set(name);
   toast(`${refunded?refunded+' bet(s) refunded. ':''}${side} → ${name} ✓`,'success');
+  renderAdmin();
+}
+
+function updatePairFields(){
+  const id=document.getElementById('aPairMatchSel')?.value;
+  const el=document.getElementById('aPairFields');
+  if(!el||!id){return;}
+  const info=parseId(id);
+  if(!info){el.innerHTML='';return;}
+  const raw=S.pairings[id]||{};
+  const e=parsePairing(id,raw);
+  const v=(x)=>esc(x&&x!=='TBD'&&x!=='?'?x:'');
+  if(info.type==='singles'){
+    el.innerHTML=`
+      <div class="admin-row"><input type="text" id="aPairP1" placeholder="Player 1" value="${v(e?.player1)}" style="flex:1"></div>
+      <div class="admin-row"><input type="text" id="aPairP2" placeholder="Player 2" value="${v(e?.player2)}" style="flex:1"></div>`;
+  } else {
+    el.innerHTML=`
+      <p style="font-size:.7rem;color:var(--text-muted);margin-bottom:.25rem">Team 1</p>
+      <div class="admin-row"><input type="text" id="aPairT1P1" placeholder="Team 1 · Player 1" value="${v(raw.player1)}" style="flex:1"></div>
+      <div class="admin-row"><input type="text" id="aPairT1P2" placeholder="Team 1 · Player 2" value="${v(raw.player2)}" style="flex:1"></div>
+      <p style="font-size:.7rem;color:var(--text-muted);margin:.25rem 0">Team 2</p>
+      <div class="admin-row"><input type="text" id="aPairT2P1" placeholder="Team 2 · Player 1" value="${v(raw.player3)}" style="flex:1"></div>
+      <div class="admin-row"><input type="text" id="aPairT2P2" placeholder="Team 2 · Player 2" value="${v(raw.player4)}" style="flex:1"></div>`;
+  }
+}
+
+async function adminSavePairing(){
+  const id=document.getElementById('aPairMatchSel')?.value;
+  const info=parseId(id);
+  if(!id||!info){toast('Select a match','error');return;}
+  let data;
+  if(info.type==='singles'){
+    const p1=document.getElementById('aPairP1')?.value?.trim();
+    const p2=document.getElementById('aPairP2')?.value?.trim();
+    if(!p1||!p2){toast('Enter both player names','error');return;}
+    data={player1:p1,player2:p2};
+  } else {
+    const p1=document.getElementById('aPairT1P1')?.value?.trim();
+    const p2=document.getElementById('aPairT1P2')?.value?.trim()||'';
+    const p3=document.getElementById('aPairT2P1')?.value?.trim();
+    const p4=document.getElementById('aPairT2P2')?.value?.trim()||'';
+    if(!p1||!p3){toast('Enter at least one player per team','error');return;}
+    data={player1:p1,player2:p2,player3:p3,player4:p4};
+  }
+  await db.ref(`${PATH.pairings}/${id}`).set(data);
+  toast(`${id} saved ✓`,'success');
   renderAdmin();
 }
 
