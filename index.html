@@ -1591,17 +1591,24 @@ async function adminSeedElos(force=false){
     const entries=Object.entries(INITIAL_ELOS);
     if(!entries.length){toast('❌ INITIAL_ELOS ist leer!','error');return;}
     let written=0, skipped=0, errors=0;
+    const errKeys=[];
     for(const[key,elo] of entries){
       try{
         if(!force){
           const snap=await db.ref(`${PATH.elos}/${key}/elo`).once('value');
           if(snap.val()!=null){skipped++;continue;}
         }
-        await db.ref(`${PATH.elos}/${key}/elo`).set(elo);
+        // Write the whole object, not just /elo sub-path
+        await db.ref(`${PATH.elos}/${key}`).update({elo});
         written++;
-      }catch(e2){errors++;}
+      }catch(e2){errors++;errKeys.push(key);}
     }
-    toast(`✅ ${written} gesetzt · ${skipped} übersprungen · ${errors} Fehler (${entries.length} total)`,'success');
+    if(errors>0) toast(`⚠️ ${errors} Fehler: ${errKeys.slice(0,3).join(', ')}…`,'error');
+    else toast(`✅ ${written} gesetzt · ${skipped} übersprungen (${entries.length} total)`,'success');
+    // Verify: read back one value
+    const testKey=entries[0][0];
+    const verify=await db.ref(`${PATH.elos}/${testKey}/elo`).once('value');
+    toast(`🔍 Verify ${testKey}: Firebase=${verify.val()} (soll ${entries[0][1]})`,'success');
   }catch(e){
     toast('Seed failed: '+e.message,'error');
   }finally{
