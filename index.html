@@ -1057,8 +1057,11 @@ function renderAdmin(){
   </div>
   <div class="admin-sec">
     <h3>🎯 Seed Initial ELOs</h3>
-    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Schreibt Start-ELOs aus dem Ranking-Sheet nach Firebase. Überschreibt nur leere Einträge.</p>
-    <button class="btn btn-gold" id="aSeedEloBtn">🎯 Seed Initial ELOs</button>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Schreibt Start-ELOs aus dem Ranking-Sheet nach Firebase.</p>
+    <div class="admin-row">
+      <button class="btn btn-gold" id="aSeedEloBtn">🎯 Nur leere</button>
+      <button class="btn btn-red" id="aForceEloBtn">⚠️ Force Overwrite</button>
+    </div>
   </div>
 
   <div class="admin-sec">
@@ -1136,6 +1139,7 @@ function renderAdmin(){
   });
   document.getElementById('aLoadDay1Btn')?.addEventListener('click', adminLoadDay1);
   document.getElementById('aSeedEloBtn')?.addEventListener('click', adminSeedElos);
+  document.getElementById('aForceEloBtn')?.addEventListener('click', ()=>adminSeedElos(true));
   document.getElementById('aPairMatchSel')?.addEventListener('change',updatePairFields);
   updatePairFields();
   document.getElementById('aPairBtn')?.addEventListener('click',adminSavePairing);
@@ -1219,8 +1223,9 @@ function updatePairFields(){
   }
 }
 
-async function adminSeedElos(){
-  const btn=document.getElementById('aSeedEloBtn');
+async function adminSeedElos(force=false){
+  const btnId=force?'aForceEloBtn':'aSeedEloBtn';
+  const btn=document.getElementById(btnId);
   if(btn){btn.textContent='⏳ Seeding…';btn.disabled=true;}
   try{
     const snap=await db.ref(PATH.elos).once('value');
@@ -1228,16 +1233,16 @@ async function adminSeedElos(){
     const upd={};
     let written=0, skipped=0;
     for(const[key,elo] of Object.entries(INITIAL_ELOS)){
-      if(existing[key]?.elo!=null){skipped++;continue;}
+      if(!force && existing[key]?.elo!=null){skipped++;continue;}
       upd[`${PATH.elos}/${key}/elo`]=elo;
       written++;
     }
     if(written>0) await db.ref('/').update(upd);
-    toast(`✅ ${written} ELOs gesetzt, ${skipped} bereits vorhanden`,'success');
+    toast(`✅ ${written} ELOs ${force?'überschrieben':'gesetzt'}, ${skipped} übersprungen`,'success');
   }catch(e){
     toast('Seed failed: '+e.message,'error');
   }finally{
-    if(btn){btn.textContent='🎯 Seed Initial ELOs';btn.disabled=false;}
+    if(btn){btn.textContent=force?'⚠️ Force Overwrite':'🎯 Nur leere';btn.disabled=false;}
     renderAdmin();
   }
 }
