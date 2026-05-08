@@ -1226,19 +1226,22 @@ function updatePairFields(){
 async function adminSeedElos(force=false){
   const btnId=force?'aForceEloBtn':'aSeedEloBtn';
   const btn=document.getElementById(btnId);
-  if(btn){btn.textContent='⏳ Seeding…';btn.disabled=true;}
+  if(btn){btn.textContent='⏳ Writing…';btn.disabled=true;}
   try{
-    const snap=await db.ref(PATH.elos).once('value');
-    const existing=snap.val()||{};
-    const upd={};
-    let written=0, skipped=0;
-    for(const[key,elo] of Object.entries(INITIAL_ELOS)){
-      if(!force && existing[key]?.elo!=null){skipped++;continue;}
-      upd[`${PATH.elos}/${key}/elo`]=elo;
-      written++;
+    const entries=Object.entries(INITIAL_ELOS);
+    if(!entries.length){toast('❌ INITIAL_ELOS ist leer!','error');return;}
+    let written=0, skipped=0, errors=0;
+    for(const[key,elo] of entries){
+      try{
+        if(!force){
+          const snap=await db.ref(`${PATH.elos}/${key}/elo`).once('value');
+          if(snap.val()!=null){skipped++;continue;}
+        }
+        await db.ref(`${PATH.elos}/${key}/elo`).set(elo);
+        written++;
+      }catch(e2){errors++;}
     }
-    if(written>0) await db.ref('/').update(upd);
-    toast(`✅ ${written} ELOs ${force?'überschrieben':'gesetzt'}, ${skipped} übersprungen`,'success');
+    toast(`✅ ${written} gesetzt · ${skipped} übersprungen · ${errors} Fehler (${entries.length} total)`,'success');
   }catch(e){
     toast('Seed failed: '+e.message,'error');
   }finally{
@@ -1414,16 +1417,26 @@ async function buildPicker(){
   const grid=document.getElementById('pickerGrid');
   try{
     const snap=await db.ref(PATH.pairings).once('value');
-    const names=extractNames(snap.val()||{});
+    let names=extractNames(snap.val()||{});
+    // Fallback: Namen aus hardcodierten Pairings wenn Firebase leer
+    if(!names.length) names=extractNames(DAY1_PAIRINGS);
     if(!names.length){
       grid.innerHTML='<div class="picker-loading" style="color:var(--text-muted);grid-column:span 2">No players loaded yet</div>';
       return;
     }
     grid.innerHTML=names.map(n=>
-      `<button class="pname-btn" onclick="login(${JSON.stringify(n)})">${esc(n)}</button>`
+      `<button class="pname-btn" data-n="${esc(n)}" onclick="login(this.dataset.n)">${esc(n)}</button>`
     ).join('');
   }catch(e){
-    grid.innerHTML='<div class="picker-loading" style="color:var(--danger);grid-column:span 2">Could not load players</div>';
+    // Bei Fehler: Fallback auf hardcodierte Pairings
+    const names=extractNames(DAY1_PAIRINGS);
+    if(names.length){
+      grid.innerHTML=names.map(n=>
+        `<button class="pname-btn" data-n="${esc(n)}" onclick="login(this.dataset.n)">${esc(n)}</button>`
+      ).join('');
+    } else {
+      grid.innerHTML='<div class="picker-loading" style="color:var(--danger);grid-column:span 2">Could not load players</div>';
+    }
   }
 }
 
