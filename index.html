@@ -461,11 +461,55 @@ const DEF_PIN = '2026';
 const SCAFFOLD = (() => {
   const ids = [];
   for(let r=1;r<=6;r++){
-    for(let m=1;m<=6;m++) ids.push(`S_R${r}_M${m}`);
+    for(let m=1;m<=12;m++) ids.push(`S_R${r}_M${m}`);
     for(let m=1;m<=6;m++) ids.push(`D_R${r}_M${m}`);
   }
   return ids;
 })();
+
+// Day 1 pairings from Shuffle Cup 2026
+const DAY1_PAIRINGS = {
+  // Singles Round 1
+  S_R1_M1:{player1:'Michael Hirsch',player2:'Torben Hußmann'},
+  S_R1_M2:{player1:'Mark Malatt',player2:'Marius Runge'},
+  S_R1_M3:{player1:'Drew Applebaum',player2:'Sebastian Runge'},
+  S_R1_M4:{player1:'Ruggy Joesten',player2:'Dieter Hußmann'},
+  S_R1_M5:{player1:'Sammy Wachholz',player2:'Irene Hoffmanns'},
+  S_R1_M6:{player1:'Alan Rosetti',player2:'Franka Lengwenus'},
+  S_R1_M7:{player1:'Mark LaVertue',player2:'Fabian Lengwenus'},
+  S_R1_M8:{player1:'Teddy Wachholz',player2:'Luisa Schwark'},
+  S_R1_M9:{player1:'Keri Gover',player2:'Dieter Hoffmanns'},
+  S_R1_M10:{player1:'Dave Berman',player2:'Steffen Simon'},
+  S_R1_M11:{player1:'Anna Balchunas',player2:'Mats Graff'},
+  S_R1_M12:{player1:'Daniel Love',player2:'Olav Hansson'},
+  // Singles Round 2
+  S_R2_M1:{player1:'Michael Hirsch',player2:'Sebastian Runge'},
+  S_R2_M2:{player1:'Mark Malatt',player2:'Dieter Hußmann'},
+  S_R2_M3:{player1:'Drew Applebaum',player2:'Irene Hoffmanns'},
+  S_R2_M4:{player1:'Ruggy Joesten',player2:'Franka Lengwenus'},
+  S_R2_M5:{player1:'Sammy Wachholz',player2:'Fabian Lengwenus'},
+  S_R2_M6:{player1:'Alan Rosetti',player2:'Luisa Schwark'},
+  S_R2_M7:{player1:'Mark LaVertue',player2:'Dieter Hoffmanns'},
+  S_R2_M8:{player1:'Teddy Wachholz',player2:'Kristin Gjelseth'},
+  S_R2_M9:{player1:'Keri Gover',player2:'Hallvard Flatland'},
+  S_R2_M10:{player1:'Lauren Seesel',player2:'Petter N. Berg'},
+  S_R2_M11:{player1:'Jim Seesel',player2:'Torben Hußmann'},
+  S_R2_M12:{player1:'Jason Yudoff',player2:'Marius Runge'},
+  // Doubles Round 1
+  D_R1_M1:{player1:'Ruggy Joesten',player2:'Jason Yudoff',player3:'Fabian Lengwenus',player4:'Hallvard Flatland'},
+  D_R1_M2:{player1:'Sammy Wachholz',player2:'Jim Seesel',player3:'Franka Lengwenus',player4:'Petter N. Berg'},
+  D_R1_M3:{player1:'Alan Rosetti',player2:'Lauren Seesel',player3:'Dieter Hußmann',player4:'Irene Hoffmanns'},
+  D_R1_M4:{player1:'Mark LaVertue',player2:'Daniel Love',player3:'Steffen Simon',player4:'Mats Graff'},
+  D_R1_M5:{player1:'Teddy Wachholz',player2:'Anna Balchunas',player3:'Dieter Hoffmanns',player4:'Olav Hansson'},
+  D_R1_M6:{player1:'Keri Gover',player2:'Dave Berman',player3:'Luisa Schwark',player4:'Kristin Gjelseth'},
+  // Doubles Round 2
+  D_R2_M1:{player1:'Michael Hirsch',player2:'Jim Seesel',player3:'Kristin Gjelseth',player4:'Mats Graff'},
+  D_R2_M2:{player1:'Jason Yudoff',player2:'Lauren Seesel',player3:'Torben Hußmann',player4:'Olav Hansson'},
+  D_R2_M3:{player1:'Mark Malatt',player2:'Daniel Love',player3:'Petter N. Berg',player4:'Dieter Hoffmanns'},
+  D_R2_M4:{player1:'Drew Applebaum',player2:'Anna Balchunas',player3:'Hallvard Flatland',player4:'Steffen Simon'},
+  D_R2_M5:{player1:'Mark LaVertue',player2:'Dave Berman',player3:'Marius Runge',player4:'Luisa Schwark'},
+  D_R2_M6:{player1:'Teddy Wachholz',player2:'Keri Gover',player3:'Sebastian Runge',player4:'Fabian Lengwenus'},
+};
 
 /* ════════════════════════════════
    STATE
@@ -888,6 +932,12 @@ function renderAdmin(){
   </div>
 
   <div class="admin-sec">
+    <h3>⚡ Quick Load</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Alle Day 1 Paarungen (24 Singles + 12 Doubles) auf einmal in Firebase schreiben.</p>
+    <button class="btn btn-gold" id="aLoadDay1Btn">🚀 Load Day 1 Pairings</button>
+  </div>
+
+  <div class="admin-sec">
     <h3>📊 Status</h3>
     <div class="stat-row">
       <div class="stat-chip">Days released: <strong>${S.releasedDays||'0'}</strong></div>
@@ -960,6 +1010,7 @@ function renderAdmin(){
     toast(`Betting unlocked for Day ${v} ✓`,'success');
     renderAdmin();
   });
+  document.getElementById('aLoadDay1Btn')?.addEventListener('click', adminLoadDay1);
   document.getElementById('aPairMatchSel')?.addEventListener('change',updatePairFields);
   updatePairFields();
   document.getElementById('aPairBtn')?.addEventListener('click',adminSavePairing);
@@ -1041,6 +1092,22 @@ function updatePairFields(){
       <div class="admin-row"><input type="text" id="aPairT2P1" placeholder="Team 2 · Player 1" value="${v(raw.player3)}" style="flex:1"></div>
       <div class="admin-row"><input type="text" id="aPairT2P2" placeholder="Team 2 · Player 2" value="${v(raw.player4)}" style="flex:1"></div>`;
   }
+}
+
+async function adminLoadDay1(){
+  const btn=document.getElementById('aLoadDay1Btn');
+  if(btn){btn.textContent='⏳ Loading…';btn.disabled=true;}
+  try{
+    const upd={};
+    for(const[id,data] of Object.entries(DAY1_PAIRINGS)){
+      upd[`${PATH.pairings}/${id}`]=data;
+    }
+    await db.ref().update(upd);
+    toast(`${Object.keys(DAY1_PAIRINGS).length} pairings loaded ✓`,'success');
+  }catch(e){
+    toast('Error: '+e.message,'error');
+  }
+  renderAdmin();
 }
 
 async function adminSavePairing(){
