@@ -391,10 +391,10 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
         </summary>
         <div style="padding:.75rem 1rem .5rem;overflow-x:auto">
           <p style="font-size:.72rem;color:var(--text-dim);margin-bottom:.65rem;line-height:1.6">
-            Start ELO = <strong style="color:var(--gold)">1500 − (Ø Normalized × 1400)</strong>.
+            Start ELO = <strong style="color:var(--gold)">1400 − (Ø Normalized / 0.766 × 200)</strong> · Range: 1200–1400 · K-Factor: 48.
             Normalized rank = (placement − 1) / (field size − 1) per year.
             Lower is better. <em>–</em> = did not compete that year.
-            Players without WM history start at <strong style="color:var(--gold)">ELO 1000</strong>.
+            Players without WM history start at <strong style="color:var(--gold)">ELO 1200</strong>.
           </p>
           <table style="width:100%;border-collapse:collapse;font-size:.75rem;min-width:420px">
             <style>
@@ -432,7 +432,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.016</td>
             <td class="nc" style="color:var(--text)">0.024</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1388</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1394</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">3</td>
@@ -441,7 +441,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">–</td>
             <td class="nc" style="color:var(--text)">0.029</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1385</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1393</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">4</td>
@@ -450,7 +450,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.043</td>
             <td class="nc" style="color:var(--text)">0.043</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1378</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1389</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">5</td>
@@ -459,7 +459,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.149</td>
             <td class="nc" style="color:var(--text)">0.089</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1354</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1377</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">6</td>
@@ -468,7 +468,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.111</td>
             <td class="nc" style="color:var(--text)">0.143</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1325</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1363</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">7</td>
@@ -477,7 +477,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.213</td>
             <td class="nc">0.143</td>
             <td class="nc" style="color:var(--text)">0.150</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1322</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1361</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">8</td>
@@ -486,7 +486,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.229</td>
             <td class="nc">0.170</td>
             <td class="nc" style="color:var(--text)">0.152</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1321</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1360</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">9</td>
@@ -495,7 +495,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.159</td>
             <td class="nc" style="color:var(--text)">0.159</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1317</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1359</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">10</td>
@@ -504,7 +504,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.319</td>
             <td class="nc">0.048</td>
             <td class="nc" style="color:var(--text)">0.159</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1317</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1358</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">11</td>
@@ -513,7 +513,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.511</td>
             <td class="nc">–</td>
             <td class="nc" style="color:var(--text)">0.255</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1267</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1333</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">12</td>
@@ -522,7 +522,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.255</td>
             <td class="nc" style="color:var(--text)">0.385</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1199</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1300</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">13</td>
@@ -531,7 +531,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.397</td>
             <td class="nc" style="color:var(--text)">0.397</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1193</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1296</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">14</td>
@@ -540,7 +540,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.447</td>
             <td class="nc">0.349</td>
             <td class="nc" style="color:var(--text)">0.398</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1192</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1296</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">15</td>
@@ -549,7 +549,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.714</td>
             <td class="nc">0.085</td>
             <td class="nc" style="color:var(--text)">0.400</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1191</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1296</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">16</td>
@@ -558,7 +558,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.413</td>
             <td class="nc" style="color:var(--text)">0.413</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1184</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1292</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">17</td>
@@ -567,7 +567,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.444</td>
             <td class="nc" style="color:var(--text)">0.444</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1168</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1284</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">18</td>
@@ -576,7 +576,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.343</td>
             <td class="nc">0.489</td>
             <td class="nc" style="color:var(--text)">0.458</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1161</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1280</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">19</td>
@@ -585,7 +585,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.872</td>
             <td class="nc">0.381</td>
             <td class="nc" style="color:var(--text)">0.492</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1143</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1272</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">20</td>
@@ -594,7 +594,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.508</td>
             <td class="nc" style="color:var(--text)">0.508</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1135</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1267</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">21</td>
@@ -603,7 +603,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.825</td>
             <td class="nc" style="color:var(--text)">0.516</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1131</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1265</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">22</td>
@@ -612,7 +612,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.596</td>
             <td class="nc">0.460</td>
             <td class="nc" style="color:var(--text)">0.528</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1124</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1262</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">23</td>
@@ -621,7 +621,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.957</td>
             <td class="nc">0.190</td>
             <td class="nc" style="color:var(--text)">0.574</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1100</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1250</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">24</td>
@@ -630,7 +630,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.787</td>
             <td class="nc">0.492</td>
             <td class="nc" style="color:var(--text)">0.640</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1066</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1233</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">25</td>
@@ -639,7 +639,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.571</td>
             <td class="nc" style="color:var(--text)">0.683</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1044</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1222</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">26</td>
@@ -648,7 +648,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.979</td>
             <td class="nc">0.524</td>
             <td class="nc" style="color:var(--text)">0.691</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1039</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1219</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">27</td>
@@ -657,7 +657,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">0.857</td>
             <td class="nc">0.553</td>
             <td class="nc" style="color:var(--text)">0.705</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1032</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1216</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">28</td>
@@ -666,7 +666,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">0.766</td>
             <td class="nc" style="color:var(--text)">0.766</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1000</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1200</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">29</td>
@@ -675,7 +675,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">–</td>
             <td class="nc" style="color:var(--text)">0.766</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1000</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1200</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">30</td>
@@ -684,7 +684,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">–</td>
             <td class="nc" style="color:var(--text)">0.766</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1000</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1200</td>
           </tr>
           <tr>
             <td style="color:var(--text-muted)">31</td>
@@ -693,7 +693,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
             <td class="nc">–</td>
             <td class="nc">–</td>
             <td class="nc" style="color:var(--text)">0.766</td>
-            <td style="color:var(--gold);font-weight:700;text-align:right">1000</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1200</td>
           </tr>
             </tbody>
           </table>
@@ -800,42 +800,42 @@ const PATH = {
 };
 
 const START = 100, MIN_BET = 1, MAX_BET = 10;
-const K = 32, DEF_ELO = 1500;
+const K = 48, DEF_ELO = 1300;
 
-// ELO Startwerte aus Ranking-Sheet (Ø Normalized → ELO Startwert)
-// Pairing-Namen als Firebase-Keys (via sk())
+// ELO Startwerte: Range 1200–1400, K=48
+// Formel: ELO = 1400 − (Ø Normalized / 0.766) × 200
 const INITIAL_ELOS = {
   'Mark_Malatt':        1400,
-  'Torben_Hußmann':     1388,
-  'Kristin_Gjelseth':   1385,
-  'Franka_Lengwenus':   1378,
-  'Irene_Hoffmanns':    1354,
-  'Mats_Graff':         1325,  // heißt im Ranking "Mats Graff-Wang"
-  'Marius_Runge':       1322,
-  'Tyne_Seybold':       1321,
-  'Dave_Berman':        1317,
-  'Sebastian_Runge':    1317,
-  'Michael_Hirsch':     1267,
-  'Anna_Balchunas':     1199,
-  'Steffen_Simon':      1193,
-  'Jim_Seesel':         1192,
-  'Lauren_Seesel':      1191,
-  'Fabian_Lengwenus':   1184,
-  'Hallvard_Flatland':  1168,
-  'Luisa_Schwark':      1161,
-  'Dieter_Hußmann':     1143,
-  'Daniel_Love':        1135,
-  'Olav_Hansson':       1131,
-  'Drew_Applebaum':     1124,  // heißt im Ranking "Drew Appelbaum"
-  'Ruggy_Joesten':      1100,
-  'Teddy_Wachholz':     1066,
-  'Dieter_Hoffmanns':   1044,
-  'Alan_Rosetti':       1039,
-  'Sammy_Wachholz':     1032,
-  'Keri_Gover':         1000,
-  'Petter_N__Berg':     1000,  // sk("Petter N. Berg") → Petter_N__Berg
-  'Jason_Yudoff':       1000,
-  'Mark_LaVertue':      1000,
+  'Torben_Hußmann':     1394,
+  'Kristin_Gjelseth':   1393,
+  'Franka_Lengwenus':   1389,
+  'Irene_Hoffmanns':    1377,
+  'Mats_Graff':         1363,
+  'Marius_Runge':       1361,
+  'Tyne_Seybold':       1360,
+  'Dave_Berman':        1359,
+  'Sebastian_Runge':    1358,
+  'Michael_Hirsch':     1333,
+  'Anna_Balchunas':     1300,
+  'Steffen_Simon':      1296,
+  'Jim_Seesel':         1296,
+  'Lauren_Seesel':      1296,
+  'Fabian_Lengwenus':   1292,
+  'Hallvard_Flatland':  1284,
+  'Luisa_Schwark':      1280,
+  'Dieter_Hußmann':     1272,
+  'Daniel_Love':        1267,
+  'Olav_Hansson':       1265,
+  'Drew_Applebaum':     1262,
+  'Ruggy_Joesten':      1250,
+  'Teddy_Wachholz':     1233,
+  'Dieter_Hoffmanns':   1222,
+  'Alan_Rosetti':       1219,
+  'Sammy_Wachholz':     1216,
+  'Keri_Gover':         1200,
+  'Petter_N__Berg':     1200,
+  'Jason_Yudoff':       1200,
+  'Mark_LaVertue':      1200,
 };
 const DEF_PIN = '2026';
 
