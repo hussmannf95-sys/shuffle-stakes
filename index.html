@@ -467,8 +467,9 @@ const SCAFFOLD = (() => {
   return ids;
 })();
 
-// Day 1 pairings from Shuffle Cup 2026
+// All pairings from Shuffle Cup 2026
 const DAY1_PAIRINGS = {
+  // ── DAY 1 ──────────────────────────────
   // Singles Round 1
   S_R1_M1:{player1:'Michael Hirsch',player2:'Torben Hußmann'},
   S_R1_M2:{player1:'Mark Malatt',player2:'Marius Runge'},
@@ -509,6 +510,88 @@ const DAY1_PAIRINGS = {
   D_R2_M4:{player1:'Drew Applebaum',player2:'Anna Balchunas',player3:'Hallvard Flatland',player4:'Steffen Simon'},
   D_R2_M5:{player1:'Mark LaVertue',player2:'Dave Berman',player3:'Marius Runge',player4:'Luisa Schwark'},
   D_R2_M6:{player1:'Teddy Wachholz',player2:'Keri Gover',player3:'Sebastian Runge',player4:'Fabian Lengwenus'},
+  // ── DAY 2 ──────────────────────────────
+  // Singles Round 3
+  S_R3_M1:{player1:'Michael Hirsch',player2:'Irene Hoffmanns'},
+  S_R3_M2:{player1:'Mark Malatt',player2:'Franka Lengwenus'},
+  S_R3_M3:{player1:'Drew Applebaum',player2:'Steffen Simon'},
+  S_R3_M4:{player1:'Ruggy Joesten',player2:'Mats Graff'},
+  S_R3_M5:{player1:'Sammy Wachholz',player2:'Olav Hansson'},
+  S_R3_M6:{player1:'Alan Rosetti',player2:'Kristin Gjelseth'},
+  S_R3_M7:{player1:'Dave Berman',player2:'Hallvard Flatland'},
+  S_R3_M8:{player1:'Anna Balchunas',player2:'Petter N. Berg'},
+  S_R3_M9:{player1:'Daniel Love',player2:'Torben Hußmann'},
+  S_R3_M10:{player1:'Lauren Seesel',player2:'Marius Runge'},
+  S_R3_M11:{player1:'Jim Seesel',player2:'Sebastian Runge'},
+  S_R3_M12:{player1:'Jason Yudoff',player2:'Dieter Hußmann'},
+  // Singles Round 4
+  S_R4_M1:{player1:'Michael Hirsch',player2:'Steffen Simon'},
+  S_R4_M2:{player1:'Mark Malatt',player2:'Mats Graff'},
+  S_R4_M3:{player1:'Drew Applebaum',player2:'Olav Hansson'},
+  S_R4_M4:{player1:'Mark LaVertue',player2:'Kristin Gjelseth'},
+  S_R4_M5:{player1:'Teddy Wachholz',player2:'Hallvard Flatland'},
+  S_R4_M6:{player1:'Keri Gover',player2:'Petter N. Berg'},
+  S_R4_M7:{player1:'Dave Berman',player2:'Torben Hußmann'},
+  S_R4_M8:{player1:'Anna Balchunas',player2:'Marius Runge'},
+  S_R4_M9:{player1:'Daniel Love',player2:'Sebastian Runge'},
+  S_R4_M10:{player1:'Lauren Seesel',player2:'Fabian Lengwenus'},
+  S_R4_M11:{player1:'Jim Seesel',player2:'Luisa Schwark'},
+  S_R4_M12:{player1:'Jason Yudoff',player2:'Dieter Hoffmanns'},
+  // Doubles Round 3
+  D_R3_M1:{player1:'Michael Hirsch',player2:'Lauren Seesel',player3:'Marius Runge',player4:'Hallvard Flatland'},
+  D_R3_M2:{player1:'Jim Seesel',player2:'Daniel Love',player3:'Dieter Hußmann',player4:'Olav Hansson'},
+  D_R3_M3:{player1:'Jason Yudoff',player2:'Anna Balchunas',player3:'Franka Lengwenus',player4:'Steffen Simon'},
+  D_R3_M4:{player1:'Mark Malatt',player2:'Dave Berman',player3:'Irene Hoffmanns',player4:'Mats Graff'},
+  D_R3_M5:{player1:'Drew Applebaum',player2:'Alan Rosetti',player3:'Torben Hußmann',player4:'Petter N. Berg'},
+  D_R3_M6:{player1:'Ruggy Joesten',player2:'Sammy Wachholz',player3:'Sebastian Runge',player4:'Kristin Gjelseth'},
+  // Doubles Round 4
+  D_R4_M1:{player1:'Michael Hirsch',player2:'Keri Gover',player3:'Petter N. Berg',player4:'Dieter Hußmann'},
+  D_R4_M2:{player1:'Lauren Seesel',player2:'Teddy Wachholz',player3:'Kristin Gjelseth',player4:'Franka Lengwenus'},
+  D_R4_M3:{player1:'Jim Seesel',player2:'Mark LaVertue',player3:'Hallvard Flatland',player4:'Irene Hoffmanns'},
+  D_R4_M4:{player1:'Jason Yudoff',player2:'Alan Rosetti',player3:'Marius Runge',player4:'Sebastian Runge'},
+  D_R4_M5:{player1:'Mark Malatt',player2:'Sammy Wachholz',player3:'Torben Hußmann',player4:'Luisa Schwark'},
+  D_R4_M6:{player1:'Drew Applebaum',player2:'Ruggy Joesten',player3:'Dieter Hoffmanns',player4:'Fabian Lengwenus'},
+  // ── DAY 3 ──────────────────────────────
+  // Singles Round 5
+  S_R5_M1:{player1:'Ruggy Joesten',player2:'Olav Hansson'},
+  S_R5_M2:{player1:'Sammy Wachholz',player2:'Kristin Gjelseth'},
+  S_R5_M3:{player1:'Alan Rosetti',player2:'Hallvard Flatland'},
+  S_R5_M4:{player1:'Mark LaVertue',player2:'Petter N. Berg'},
+  S_R5_M5:{player1:'Teddy Wachholz',player2:'Dieter Hußmann'},
+  S_R5_M6:{player1:'Keri Gover',player2:'Irene Hoffmanns'},
+  S_R5_M7:{player1:'Dave Berman',player2:'Franka Lengwenus'},
+  S_R5_M8:{player1:'Anna Balchunas',player2:'Fabian Lengwenus'},
+  S_R5_M9:{player1:'Daniel Love',player2:'Luisa Schwark'},
+  S_R5_M10:{player1:'Lauren Seesel',player2:'Dieter Hoffmanns'},
+  S_R5_M11:{player1:'Jim Seesel',player2:'Steffen Simon'},
+  S_R5_M12:{player1:'Jason Yudoff',player2:'Mats Graff'},
+  // Singles Round 6
+  S_R6_M1:{player1:'Michael Hirsch',player2:'Franka Lengwenus'},
+  S_R6_M2:{player1:'Mark Malatt',player2:'Fabian Lengwenus'},
+  S_R6_M3:{player1:'Drew Applebaum',player2:'Luisa Schwark'},
+  S_R6_M4:{player1:'Ruggy Joesten',player2:'Dieter Hoffmanns'},
+  S_R6_M5:{player1:'Sammy Wachholz',player2:'Steffen Simon'},
+  S_R6_M6:{player1:'Alan Rosetti',player2:'Mats Graff'},
+  S_R6_M7:{player1:'Mark LaVertue',player2:'Olav Hansson'},
+  S_R6_M8:{player1:'Teddy Wachholz',player2:'Torben Hußmann'},
+  S_R6_M9:{player1:'Keri Gover',player2:'Marius Runge'},
+  S_R6_M10:{player1:'Dave Berman',player2:'Sebastian Runge'},
+  S_R6_M11:{player1:'Anna Balchunas',player2:'Dieter Hußmann'},
+  S_R6_M12:{player1:'Daniel Love',player2:'Irene Hoffmanns'},
+  // Doubles Round 5
+  D_R5_M1:{player1:'Michael Hirsch',player2:'Teddy Wachholz',player3:'Dieter Hoffmanns',player4:'Steffen Simon'},
+  D_R5_M2:{player1:'Keri Gover',player2:'Mark LaVertue',player3:'Torben Hußmann',player4:'Dieter Hußmann'},
+  D_R5_M3:{player1:'Dave Berman',player2:'Alan Rosetti',player3:'Fabian Lengwenus',player4:'Olav Hansson'},
+  D_R5_M4:{player1:'Anna Balchunas',player2:'Sammy Wachholz',player3:'Luisa Schwark',player4:'Mats Graff'},
+  D_R5_M5:{player1:'Daniel Love',player2:'Ruggy Joesten',player3:'Franka Lengwenus',player4:'Marius Runge'},
+  D_R5_M6:{player1:'Mark Malatt',player2:'Drew Applebaum',player3:'Irene Hoffmanns',player4:'Sebastian Runge'},
+  // Doubles Round 6
+  D_R6_M1:{player1:'Ruggy Joesten',player2:'Dave Berman',player3:'Dieter Hußmann',player4:'Petter N. Berg'},
+  D_R6_M2:{player1:'Anna Balchunas',player2:'Keri Gover',player3:'Franka Lengwenus',player4:'Kristin Gjelseth'},
+  D_R6_M3:{player1:'Daniel Love',player2:'Teddy Wachholz',player3:'Irene Hoffmanns',player4:'Hallvard Flatland'},
+  D_R6_M4:{player1:'Lauren Seesel',player2:'Mark LaVertue',player3:'Luisa Schwark',player4:'Mats Graff'},
+  D_R6_M5:{player1:'Jim Seesel',player2:'Alan Rosetti',player3:'Dieter Hoffmanns',player4:'Steffen Simon'},
+  D_R6_M6:{player1:'Jason Yudoff',player2:'Sammy Wachholz',player3:'Fabian Lengwenus',player4:'Olav Hansson'},
 };
 
 /* ════════════════════════════════
@@ -933,8 +1016,8 @@ function renderAdmin(){
 
   <div class="admin-sec">
     <h3>⚡ Quick Load</h3>
-    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Alle Day 1 Paarungen (24 Singles + 12 Doubles) auf einmal in Firebase schreiben.</p>
-    <button class="btn btn-gold" id="aLoadDay1Btn">🚀 Load Day 1 Pairings</button>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Alle Paarungen (Day 1–3, je 24 Singles + 12 Doubles) auf einmal in Firebase schreiben.</p>
+    <button class="btn btn-gold" id="aLoadDay1Btn">🚀 Load All Pairings (Day 1–3)</button>
   </div>
 
   <div class="admin-sec">
