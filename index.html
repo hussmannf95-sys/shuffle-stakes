@@ -456,39 +456,40 @@ const PATH = {
 const START = 100, MIN_BET = 1, MAX_BET = 10;
 const K = 32, DEF_ELO = 1500;
 
-// Initiale ELOs aus WM-Rangliste: ELO = 1500 - (score-1) * (300/36)
+// ELO Startwerte aus Ranking-Sheet (Ø Normalized → ELO Startwert)
+// Pairing-Namen als Firebase-Keys (via sk())
 const INITIAL_ELOS = {
-  'Mark_Malatt':       1500,
-  'Michael_Hirsch':    1500,
-  'Torben_Hußmann':    1492,
-  'Kristin_Gjelseth':  1492,
-  'Franka_Lengwenus':  1483,
-  'Sebastian_Runge':   1475,
-  'Mats_Graff':        1471,
-  'Irene_Hoffmanns':   1467,
-  'Lauren_Seesel':     1467,
-  'Marius_Runge':      1438,
-  'Tyne_Seybold':      1433,
-  'Dave_Berman':       1417,
-  'Ruggy_Joesten':     1400,
-  'Anna_Balchunas':    1400,
-  'Luisa_Schwark':     1354,
-  'Jim_Seesel':        1317,
-  'Dieter_Hußmann':    1300,
-  'Steffen_Simon':     1292,
-  'Dieter_Hoffmanns':  1288,
-  'Fabian_Lengwenus':  1283,
-  'Sammy_Wachholz':    1283,
-  'Hallvard_Flatland': 1267,
-  'Petter_N__Berg':    1258,
-  'Drew_Applebaum':    1258,
-  'Teddy_Wachholz':    1242,
-  'Daniel_Love':       1233,
-  'Olav_Hansson':      1225,
-  'Alan_Rosetti':      1225,
-  'Jason_Yudoff':      1217,
-  'Mark_LaVertue':     1217,
-  'Keri_Gover':        1217,  // score=35 (korrigiert von 37)
+  'Mark_Malatt':        1400,
+  'Torben_Hußmann':     1388,
+  'Kristin_Gjelseth':   1385,
+  'Franka_Lengwenus':   1378,
+  'Irene_Hoffmanns':    1354,
+  'Mats_Graff':         1325,  // heißt im Ranking "Mats Graff-Wang"
+  'Marius_Runge':       1322,
+  'Tyne_Seybold':       1321,
+  'Dave_Berman':        1317,
+  'Sebastian_Runge':    1317,
+  'Michael_Hirsch':     1267,
+  'Anna_Balchunas':     1199,
+  'Steffen_Simon':      1193,
+  'Jim_Seesel':         1192,
+  'Lauren_Seesel':      1191,
+  'Fabian_Lengwenus':   1184,
+  'Hallvard_Flatland':  1168,
+  'Luisa_Schwark':      1161,
+  'Dieter_Hußmann':     1143,
+  'Daniel_Love':        1135,
+  'Olav_Hansson':       1131,
+  'Drew_Applebaum':     1124,  // heißt im Ranking "Drew Appelbaum"
+  'Ruggy_Joesten':      1100,
+  'Teddy_Wachholz':     1066,
+  'Dieter_Hoffmanns':   1044,
+  'Alan_Rosetti':       1039,
+  'Sammy_Wachholz':     1032,
+  'Keri_Gover':         1000,
+  'Petter_N__Berg':     1000,  // sk("Petter N. Berg") → Petter_N__Berg
+  'Jason_Yudoff':       1000,
+  'Mark_LaVertue':      1000,
 };
 const DEF_PIN = '2026';
 
@@ -1056,10 +1057,9 @@ function renderAdmin(){
   </div>
   <div class="admin-sec">
     <h3>🎯 Seed Initial ELOs</h3>
-    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Schreibt Start-ELOs aus der WM-Rangliste nach Firebase. Überschreibt nur leere Einträge.</p>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Schreibt Start-ELOs aus dem Ranking-Sheet nach Firebase. Überschreibt nur leere Einträge.</p>
     <button class="btn btn-gold" id="aSeedEloBtn">🎯 Seed Initial ELOs</button>
   </div>
-
 
   <div class="admin-sec">
     <h3>📊 Status</h3>
@@ -1228,7 +1228,7 @@ async function adminSeedElos(){
     const upd={};
     let written=0, skipped=0;
     for(const[key,elo] of Object.entries(INITIAL_ELOS)){
-      if(existing[key]?.elo!=null){ skipped++; continue; } // nicht überschreiben
+      if(existing[key]?.elo!=null){skipped++;continue;}
       upd[`${PATH.elos}/${key}/elo`]=elo;
       written++;
     }
