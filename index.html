@@ -245,6 +245,17 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
 .bi-body{display:flex;justify-content:space-between;align-items:center}
 .bi-on{font-weight:600;font-size:.85rem}
 .bi-amt{font-size:.78rem;color:var(--text-dim)}
+.rules-box{background:rgba(201,162,39,.06);border:1px solid var(--border);border-radius:10px;
+  padding:.9rem 1rem;margin:.75rem .75rem .25rem;font-size:.74rem;color:var(--text-dim);line-height:1.7}
+.rules-box h4{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.45rem}
+.rules-box ul{padding-left:1rem;margin:0}
+.rules-box li{margin-bottom:.1rem}
+.btn-cancel-bet{background:rgba(185,28,46,.12);border:1px solid rgba(185,28,46,.35);
+  border-radius:6px;color:var(--red);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-size:.7rem;font-weight:700;letter-spacing:.08em;padding:.2rem .55rem;
+  transition:all .15s;text-transform:uppercase}
+.btn-cancel-bet:active{background:rgba(185,28,46,.3)}
 
 /* ─── LEADERBOARD ─── */
 .lb-table{width:100%;border-collapse:collapse}
@@ -352,6 +363,19 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
       <div id="matchList"><div class="empty"><div class="icon">⏳</div><p>Loading matches…</p></div></div>
     </div>
     <div id="tabMyBets" class="tab-panel">
+      <div class="rules-box">
+        <h4>📋 Betting Rules</h4>
+        <ul>
+          <li>🪙 Start balance: <strong>100 Shuffle Coins</strong></li>
+          <li>🎯 Bet size: <strong>min 1 · max 10 coins</strong> per match</li>
+          <li>🚫 You cannot bet on your <strong>own loss</strong></li>
+          <li>1️⃣ <strong>One bet per match</strong> — no double betting</li>
+          <li>📛 <strong>Name = account</strong> — no password, choose carefully</li>
+          <li>📊 Odds based on <strong>ELO ratings</strong> — may shift before you bet</li>
+          <li>✏️ <strong>Cancel anytime</strong> before result is entered — coins returned</li>
+          <li>🔒 <strong>No changes</strong> once a result is settled</li>
+        </ul>
+      </div>
       <div id="myBetsList"><div class="empty"><div class="icon">🎰</div><p>No bets yet.</p></div></div>
     </div>
     <div id="tabLeaderboard" class="tab-panel">
@@ -939,6 +963,8 @@ function renderMyBets(){
       detail=`${b.amount}🪙 × ${b.odds}x`;won++;winCoins+=Math.round(b.amount*b.odds);}
     else{cls='lost';tag='Lost';tagCls='t-lost';detail=`${b.amount}🪙 lost`;lost++;}
 
+    const cancelBtn=(!b.settled&&!b.refunded&&!S.results[b.mid])
+      ?`<button class="btn-cancel-bet" onclick="cancelBet('${b.mid}','${b.bid}')">✕ Cancel</button>`:'';
     html+=`<div class="bet-item ${cls}">
       <div class="bi-head">
         <span class="bi-match">${b.mid}</span>
@@ -948,6 +974,7 @@ function renderMyBets(){
         <span class="bi-on">📌 ${esc(trunc(sideName,20))}</span>
         <span class="bi-amt">${esc(detail)}</span>
       </div>
+      ${cancelBtn?`<div style="text-align:right;margin-top:.35rem">${cancelBtn}</div>`:''}
     </div>`;
   }
 
@@ -1460,6 +1487,25 @@ async function login(name){
   document.getElementById('appScreen').classList.remove('hidden');
   document.body.classList.add('app-mode');
   startListeners(key);
+}
+
+async function cancelBet(mid, bid){
+  if(!S.user) return;
+  const betRef=db.ref(`${PATH.bets}/${mid}/${bid}`);
+  const snap=await betRef.once('value');
+  const bet=snap.val();
+  if(!bet){toast('Bet not found','error');return;}
+  if(bet.user!==S.user){toast('Not your bet','error');return;}
+  if(bet.settled||bet.refunded){toast('Bet already settled','error');return;}
+  if(S.results[mid]){toast('Result already entered — cannot cancel','error');return;}
+  // Refund coins and mark bet as refunded
+  const upd={};
+  upd[`${PATH.bets}/${mid}/${bid}/settled`]=true;
+  upd[`${PATH.bets}/${mid}/${bid}/refunded`]=true;
+  upd[`${PATH.bets}/${mid}/${bid}/won`]=false;
+  upd[`${PATH.users}/${sk(S.user)}/coins`]=firebase.database.ServerValue.increment(bet.amount);
+  await db.ref('/').update(upd);
+  toast(`✅ Bet cancelled — ${bet.amount}🪙 returned`,'success');
 }
 
 function startListeners(userKey){
