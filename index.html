@@ -1151,6 +1151,15 @@ function renderAdmin(){
   </div>
 
   <div class="admin-sec">
+    <h3>🗑️ Delete User</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Löscht User-Account + alle Wetten. Coins weg. Nicht rückgängig machbar.</p>
+    <div class="admin-row">
+      <input type="text" id="aDelUser" placeholder="Exact player name" style="flex:1">
+    </div>
+    <button class="btn btn-red" id="aDelBtn">🗑️ Delete User</button>
+  </div>
+
+  <div class="admin-sec">
     <h3>🔑 Change Admin PIN</h3>
     <div class="admin-row">
       <input type="password" id="aNewPin" placeholder="New PIN (min. 4 chars)" style="flex:1">
@@ -1177,6 +1186,7 @@ function renderAdmin(){
   document.getElementById('aResultBtn')?.addEventListener('click',adminResult);
   document.getElementById('aSubBtn')?.addEventListener('click',adminSub);
   document.getElementById('aCoinBtn')?.addEventListener('click',adminCoin);
+  document.getElementById('aDelBtn')?.addEventListener('click',adminDeleteUser);
   document.getElementById('aPinBtn')?.addEventListener('click',adminPin);
 }
 
@@ -1488,6 +1498,30 @@ async function login(name){
   document.getElementById('appScreen').classList.remove('hidden');
   document.body.classList.add('app-mode');
   startListeners(key);
+}
+
+async function adminDeleteUser(){
+  const name=document.getElementById('aDelUser')?.value?.trim();
+  if(!name){toast('Enter player name','error');return;}
+  const key=sk(name);
+  try{
+    // Delete user account
+    await db.ref(`${PATH.users}/${key}`).remove();
+    // Delete all their bets
+    const betsSnap=await db.ref(PATH.bets).once('value');
+    const allBets=betsSnap.val()||{};
+    const upd={};
+    for(const[mid,matchBets] of Object.entries(allBets)){
+      for(const[bid,b] of Object.entries(matchBets)){
+        if(b.user===name) upd[`${PATH.bets}/${mid}/${bid}`]=null;
+      }
+    }
+    if(Object.keys(upd).length) await db.ref('/').update(upd);
+    document.getElementById('aDelUser').value='';
+    toast(`🗑️ "${name}" deleted (key: ${key})`, 'success');
+  }catch(e){
+    toast('Delete failed: '+e.message,'error');
+  }
 }
 
 async function cancelBet(mid, bid){
