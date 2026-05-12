@@ -1558,6 +1558,15 @@ function renderLeaderboard(){
 /* ════════════════════════════════
    RENDER: ADMIN
 ════════════════════════════════ */
+  async function resetAllCoins(){
+  if(!confirm('Alle Spieler auf 100 Coins zurücksetzen? (Nicht rückgängig)')) return;
+  const snap = await db.ref(PATH.users).once('value');
+  const users = snap.val()||{};
+  const upd = {};
+  for(const key of Object.keys(users)) upd[`${PATH.users}/${key}/coins`] = 100;
+  await db.ref().update(upd);
+  toast(`✅ ${Object.keys(users).length} Spieler auf 100 🪙 zurückgesetzt`,'success');
+}
 function renderAdmin(){
   const el=document.getElementById('adminPanel');
   const ids=allIds();
@@ -1680,7 +1689,11 @@ function renderAdmin(){
     </div>
     <button class="btn btn-outline" id="aCoinBtn">Apply</button>
   </div>
-
+<div class="admin-sec">
+    <h3>🔄 Season Reset</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Alle Spieler auf 100 Startguthaben zurücksetzen.</p>
+    <button class="btn btn-red" id="aResetCoinsBtn">🔄 Alle auf 100 Coins zurücksetzen</button>
+  </div>
   <div class="admin-sec">
     <h3>🗑️ Delete User</h3>
     <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Löscht User-Account + alle Wetten. Coins weg. Nicht rückgängig machbar.</p>
@@ -1719,6 +1732,7 @@ function renderAdmin(){
   document.getElementById('aCoinBtn')?.addEventListener('click',adminCoin);
   document.getElementById('aDelBtn')?.addEventListener('click',adminDeleteUser);
   document.getElementById('aPinBtn')?.addEventListener('click',adminPin);
+  document.getElementById('aResetCoinsBtn')?.addEventListener('click', resetAllCoins);
 }
 
 function updateWinnerRow(){
