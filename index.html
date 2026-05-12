@@ -1088,7 +1088,7 @@ function orOptionsForType(type){
   const withProb=players.map(n=>({key:n,label:n,elo:getPlayerEloVal(n)}));
   const totalInv=withProb.reduce((s,p)=>s+1/p.elo,0);
   return withProb
-    .map(p=>({key:p.key,label:p.label,odds:parseFloat((totalInv/(1/p.elo)*0.88).toFixed(2))}))
+  .map(p=>({key:p.key,label:p.label,odds:parseFloat((players.length*(1-((p.elo-1200)/200)*0.3)).toFixed(2))}))
     .sort((a,b)=>a.odds-b.odds);
 }
 const _orSel={}, _orAmt={}; 
