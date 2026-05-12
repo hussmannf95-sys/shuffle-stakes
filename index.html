@@ -1368,6 +1368,11 @@ function orRange(qid,val){
 function renderMatches(){
   const el=document.getElementById('matchList');
   const ids=allIds();
+  const effectiveDaysCheck=Math.max(S.releasedDays,S.overrideDays);
+  if(effectiveDaysCheck===0){
+    el.innerHTML='<div class="empty"><div class="icon">🔒</div><p>Pairings not yet released.</p></div>';
+    return;
+  }
   // group by day→round→type
   const days={};
   for(const id of ids){
@@ -1398,7 +1403,7 @@ function matchCard(id){
   const winner=getWinner(S.results[id]);
   const hasP=pairing&&pairing.player1&&pairing.player2;
   const effectiveDays=Math.max(S.releasedDays, S.overrideDays);
-  const isRel=effectiveDays===0||info.day<=effectiveDays;
+  const isRel=effectiveDays>0&&info.day<=effectiveDays;
   const isOpen=hasP&&!winner&&isRel;
   const isSettled=!!winner;
 
