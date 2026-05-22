@@ -1,10 +1,9 @@
-/* Shuffle Stakes – patch.js v9 */
+/* Shuffle Stakes – patch.js v10 */
 (function () {
 
   function sk(name) {
     return name ? name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') : null;
   }
-
   function fbRef(path) { return firebase.database().ref(path); }
 
   let OR_CFG = {};
@@ -12,20 +11,31 @@
     OR_CFG = snap.val() || {};
   });
 
-  /* ── Inject ──────────────────────────────────────────────────────── */
+  /* ── Eigenen Container holen / erstellen ───────────────────────── */
+  function getOrContainer() {
+    let el = document.getElementById('or-bets-panel');
+    if (el) return el;
+    const list = document.getElementById('myBetsList');
+    if (!list) return null;
+    el = document.createElement('div');
+    el.id = 'or-bets-panel';
+    list.parentNode.insertBefore(el, list);
+    return el;
+  }
+
+  /* ── Inject ─────────────────────────────────────────────────────── */
   function injectOrBets() {
     if (!window.S || !S.user) return;
     const picks = S.myOrPicks || {};
-    if (!Object.keys(picks).length) return;
-    const container = document.getElementById('myBetsList');
-    if (!container) return;
+    const pending = Object.entries(picks).filter(([, p]) => p && !p.settled);
+    console.log('[patch v10] injectOrBets called, pending:', pending.length);
+    if (!pending.length) return;
 
-    // Empty-State entfernen falls vorhanden
-    container.querySelectorAll('.empty').forEach(el => el.remove());
-    container.querySelectorAll('.or-injected-row').forEach(el => el.remove());
+    const panel = getOrContainer();
+    if (!panel) { console.log('[patch v10] no panel found'); return; }
 
-    Object.entries(picks).forEach(([qid, pick]) => {
-      if (!pick || pick.settled) return;
+    panel.innerHTML = '';
+    pending.forEach(([qid, pick]) => {
       const label = (OR_CFG[qid] && OR_CFG[qid].label) || qid;
       const pot = Math.round(pick.amount * pick.odds);
       const row = document.createElement('div');
@@ -44,11 +54,11 @@
           <span style="font-size:12px;color:#aaa;">${pick.amount}🪙 · ${pick.odds}x → pot. ${pot}🪙</span>
         </div>
       `;
-      container.prepend(row);
+      panel.appendChild(row);
     });
-    console.log('[patch v9] injected', Object.keys(picks).filter(k => !picks[k].settled).length, 'OR row(s)');
+    console.log('[patch v10] injected', pending.length, 'OR row(s) into #or-bets-panel');
   }
-  window._patchInject = injectOrBets; // Debug-Zugang
+  window._patchInject = injectOrBets;
 
   /* ── renderMyBets wrappen ───────────────────────────────────────── */
   function _tryWrapRenderMyBets() {
@@ -60,11 +70,11 @@
         return r;
       };
       window.renderMyBets._patched = true;
-      console.log('[patch v9] renderMyBets wrapped');
+      console.log('[patch v10] renderMyBets wrapped');
     }
   }
 
-  /* ── Firebase-Listener für OR-Picks ────────────────────────────── */
+  /* ── Firebase-Listener ─────────────────────────────────────────── */
   let _listenerActive = false;
   function _setupOrPicksListener() {
     if (_listenerActive) return;
@@ -76,7 +86,7 @@
         S.myOrPicks = snap.val() || {};
         injectOrBets();
       });
-    console.log('[patch v9] OR listener set up for', key);
+    console.log('[patch v10] OR listener for', key);
   }
 
   /* ── orPlaceBet wrappen ─────────────────────────────────────────── */
@@ -94,45 +104,19 @@
     }
   }
 
-  /* ── MutationObserver auf #myBetsList ──────────────────────────── */
-  let _cObs = null;
-  function _attachContainerObs() {
-    const container = document.getElementById('myBetsList');
-    if (!container) return;
-    if (_cObs) { _cObs.disconnect(); _cObs = null; }
-    _cObs = new MutationObserver(() => {
-      if (container.querySelectorAll('.or-injected-row').length === 0) {
-        _cObs.disconnect();
-        injectOrBets();
-        setTimeout(() => { if (_cObs) _cObs.observe(container, { childList: true }); }, 0);
-      }
-    });
-    _cObs.observe(container, { childList: true });
-  }
-
-  /* ── Haupt-Poll: läuft UNBEGRENZT alle 500ms ────────────────────── */
-  // Kein Timeout – deckt späten Login (manuell) sicher ab
+  /* ── Haupt-Poll ─────────────────────────────────────────────────── */
   setInterval(() => {
     _tryWrapRenderMyBets();
     _tryWrapOrPlaceBet();
-
     if (!window.S || !S.user) return;
-
-    // Firebase-Listener beim ersten User-Fund starten
     if (!_listenerActive) _setupOrPicksListener();
-
-    // Container-Observer ggf. (neu) anhängen
-    const container = document.getElementById('myBetsList');
-    if (container) {
-      if (!_cObs) _attachContainerObs();
-      // Wenn OR-Picks da aber keine injected Rows → inject
-      const picks = S.myOrPicks || {};
-      const pending = Object.values(picks).filter(p => p && !p.settled);
-      if (pending.length > 0 && container.querySelectorAll('.or-injected-row').length === 0) {
-        injectOrBets();
-      }
+    const picks = S.myOrPicks || {};
+    const pending = Object.values(picks).filter(p => p && !p.settled);
+    const panel = document.getElementById('or-bets-panel');
+    if (pending.length > 0 && (!panel || panel.children.length === 0)) {
+      injectOrBets();
     }
   }, 500);
 
-  console.log('[patch v9] loaded');
+  console.log('[patch v10] loaded');
 })();
