@@ -90,7 +90,8 @@
     if (!panel) return;
     panel.innerHTML = '';
     pending.forEach(([qid, pick]) => {
-      const label = (OR_CFG[qid] && OR_CFG[qid].label) || qid;
+      const LABELS = { q1_overall: 'Overall Winner 🏆' };
+      const label = (OR_CFG[qid] && OR_CFG[qid].label) || LABELS[qid] || qid;
       const pot = Math.round(pick.amount * pick.odds);
       const row = document.createElement('div');
       row.className = 'bet-item pending or-injected-row';
