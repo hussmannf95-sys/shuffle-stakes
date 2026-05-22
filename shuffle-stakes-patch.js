@@ -1,17 +1,15 @@
 /*
- * SHUFFLE STAKES — Bug-Fix Patch
- * ===============================
- * Fixes 3 bugs. Paste this ENTIRE block at the very end of the <script> in index.html,
- * just before </script>. It overrides the buggy functions with corrected versions.
+ * SHUFFLE STAKES — Bug-Fix Patch v2
+ * ===================================
+ * Fix 1: Coins update sofort nach Wette
+ * Fix 2: My Bets zeigt Outright-Picks als Pending
+ * Fix 3: Manueller Name — Inline-Eingabe statt blockiertem window.prompt
  *
- * BUG 1 – Coins not updating after a bet
- * BUG 2 – My Bets shows outright picks as "lost" (or not at all)
- * BUG 3 – Manual name entry does nothing (window.prompt blocked on mobile)
+ * Einfügen: direkt vor </script> am Ende der index.html
+ * ODER als externe Datei: <script src="shuffle-stakes-patch.js"></script>
  */
 
-/* ──────────────────────────────────────────────────────────
-   FIX 1 + FIX 2 part a: orPlaceBet — reliable transaction
-   ────────────────────────────────────────────────────────── */
+/* ── FIX 1a: orPlaceBet — zuverlässige Transaktion ── */
 async function orPlaceBet(qid){
   if(!S.user){toast('Please log in first','error');return;}
   const pick=_orSel[qid];
@@ -27,35 +25,24 @@ async function orPlaceBet(qid){
   const netCost=amount-refund;
   if(S.coins<netCost){toast('Not enough coins!','error');return;}
   const userKey=sk(S.user);
-
-  // FIX 1: Use TransactionResult instead of unreliable `ok` flag
   const txResult=await db.ref(`${PATH.users}/${userKey}/coins`).transaction(c=>{
-    if(c==null) return undefined; // not yet cached — Firebase will retry with real value
-    if(c<netCost) return undefined; // insufficient coins → abort
+    if(c==null) return undefined;
+    if(c<netCost) return undefined;
     return c-netCost;
   });
   if(!txResult.committed){toast('Transaction failed — try again','error');return;}
-
-  // Immediately update local state + header display (don't wait for listener)
   S.coins=txResult.snapshot.val()??S.coins;
-  const coinEl=document.getElementById('hdrCoins');
-  if(coinEl){
-    coinEl.textContent=S.coins;
-    coinEl.classList.add('animate');
-    setTimeout(()=>coinEl.classList.remove('animate'),800);
-  }
-
+  const _ce1=document.getElementById('hdrCoins');
+  if(_ce1){_ce1.textContent=S.coins;_ce1.classList.add('animate');setTimeout(()=>_ce1.classList.remove('animate'),800);}
   await db.ref(`shufflecup2026_betting/outright_picks/${userKey}/${qid}`).set({
     pick,odds:pickOdds,amount,
     placedAt:firebase.database.ServerValue.TIMESTAMP,
-    settled:false,won:false // store false instead of null — Firebase removes null!
+    settled:false,won:false
   });
   toast(`Q${q.n} saved: ${trunc(pick,14)} @ ${pickOdds}x ✓`,'success');
 }
 
-/* ──────────────────────────────────────────────────────────
-   FIX 1 part b: confirmBet — same reliable transaction fix
-   ────────────────────────────────────────────────────────── */
+/* ── FIX 1b: confirmBet — zuverlässige Transaktion ── */
 async function confirmBet(){
   const{matchId,side,o1,o2}=S.bm;
   const amt=parseInt(document.getElementById('amtSlider')?.value)||5;
@@ -63,27 +50,19 @@ async function confirmBet(){
   if(S.coins<amt){toast('Not enough coins!','error');return;}
   const o=side==='player1'?o1:o2;
   const userKey=sk(S.user);
-
-  // FIX 1: reliable transaction
-  const txResult=await db.ref(`${PATH.users}/${userKey}/coins`).transaction(c=>{
+  const txResult2=await db.ref(`${PATH.users}/${userKey}/coins`).transaction(c=>{
     if(c==null) return undefined;
     if(c<amt) return undefined;
     return c-amt;
   });
-  if(!txResult.committed){toast('Coin transaction failed — try again','error');return;}
-
-  S.coins=txResult.snapshot.val()??S.coins;
-  const coinEl=document.getElementById('hdrCoins');
-  if(coinEl){
-    coinEl.textContent=S.coins;
-    coinEl.classList.add('animate');
-    setTimeout(()=>coinEl.classList.remove('animate'),800);
-  }
-
+  if(!txResult2.committed){toast('Coin transaction failed — try again','error');return;}
+  S.coins=txResult2.snapshot.val()??S.coins;
+  const _ce2=document.getElementById('hdrCoins');
+  if(_ce2){_ce2.textContent=S.coins;_ce2.classList.add('animate');setTimeout(()=>_ce2.classList.remove('animate'),800);}
   await db.ref(`${PATH.bets}/${matchId}`).push({
     user:S.user,side,amount:amt,odds:o,
     placedAt:firebase.database.ServerValue.TIMESTAMP,
-    settled:false,won:false // store false instead of null
+    settled:false,won:false
   });
   closeBet();
   const p=parsePairing(matchId,S.pairings[matchId]);
@@ -91,73 +70,38 @@ async function confirmBet(){
   toast(`${amt}🪙 on ${trunc(sn,12)} @ ${o}x ✓`,'success');
 }
 
-/* ──────────────────────────────────────────────────────────
-   FIX 2: renderMyBets — include outright picks in the list
-   ────────────────────────────────────────────────────────── */
+/* ── FIX 2: renderMyBets — zeigt auch Outright-Picks ── */
 function renderMyBets(){
   const el=document.getElementById('myBetsList');
   const flat=[];
-
-  // Regular match bets
   for(const[mid,bets] of Object.entries(S.myBets))
-    for(const[bid,b] of Object.entries(bets))
-      flat.push({mid,bid,...b,isOutright:false});
-
-  // FIX 2: Outright picks — these were invisible before!
+    for(const[bid,b] of Object.entries(bets)) flat.push({mid,bid,...b,isOutright:false});
   for(const[qid,pick] of Object.entries(S.myOrPicks)){
     if(!pick||!pick.pick) continue;
     const q=OUTRIGHT_QUESTIONS.find(x=>x.id===qid);
-    flat.push({
-      mid:qid, bid:qid, user:S.user,
-      side:pick.pick, amount:pick.amount||0, odds:pick.odds||1,
-      placedAt:pick.placedAt||0,
-      settled:pick.settled||false,
-      // FIX 2: won:false (not null) is stored now; pending = !settled
-      won:pick.won===true?true:false,
-      refunded:false, isOutright:true,
-      outrightLabel:q?`🎯 Q${q.n}: ${q.title}`:`🎯 ${qid}`
-    });
+    flat.push({mid:qid,bid:qid,user:S.user,side:pick.pick,amount:pick.amount||0,
+      odds:pick.odds||1,placedAt:pick.placedAt||0,settled:pick.settled||false,
+      won:pick.won===true,refunded:false,isOutright:true,
+      outrightLabel:q?`🎯 Q${q.n}: ${q.title}`:`🎯 ${qid}`});
   }
-
-  if(!flat.length){
-    el.innerHTML='<div class="empty"><div class="icon">🎰</div><p>You haven\'t placed any bets yet.</p></div>';
-    return;
-  }
+  if(!flat.length){el.innerHTML='<div class="empty"><div class="icon">🎰</div><p>You haven\'t placed any bets yet.</p></div>';return;}
   flat.sort((a,b)=>(b.placedAt||0)-(a.placedAt||0));
-
   let html='';
   let pending=0,won=0,lost=0,winCoins=0;
   for(const b of flat){
-    // For outright bets: pending = not settled; won/lost based on settled+won flags
-    const isPending = !b.settled;
-    const isWon     = b.settled && b.won===true;
-    const isLost    = b.settled && b.won!==true && !b.refunded;
-
-    const pairing = b.isOutright ? null : parsePairing(b.mid,S.pairings[b.mid]);
-    const sideName = b.isOutright
-      ? b.side
-      : (pairing ? (b.side==='player1'?pairing.player1:pairing.player2) : b.side);
-    const matchLabel = b.isOutright ? b.outrightLabel : b.mid;
-
+    const pairing=b.isOutright?null:parsePairing(b.mid,S.pairings[b.mid]);
+    const sideName=b.isOutright?b.side:(pairing?(b.side==='player1'?pairing.player1:pairing.player2):b.side);
+    const matchLabel=b.isOutright?b.outrightLabel:b.mid;
+    const isPending=!b.settled;
     let cls,tag,tagCls,detail;
-    if(b.refunded){
-      cls='refunded';tag='Refunded';tagCls='t-refund';detail=`${b.amount}🪙 returned`;
-    } else if(isPending){
-      cls='pending';tag='Pending';tagCls='t-pending';
-      const pot=Math.round(b.amount*b.odds);
-      detail=`${b.amount}🪙 × ${b.odds}x → pot. ${pot}🪙`;
-      pending++;
-    } else if(isWon){
-      cls='won';tag=`+${Math.round(b.amount*b.odds)}🪙 won`;tagCls='t-won';
-      detail=`${b.amount}🪙 × ${b.odds}x`;won++;winCoins+=Math.round(b.amount*b.odds);
-    } else {
-      cls='lost';tag='Lost';tagCls='t-lost';detail=`${b.amount}🪙 lost`;lost++;
-    }
-
-    // Cancel only available for regular (non-outright) pending bets
+    if(b.refunded){cls='refunded';tag='Refunded';tagCls='t-refund';detail=`${b.amount}🪙 returned`;}
+    else if(isPending){cls='pending';tag='Pending';tagCls='t-pending';
+      const pot=Math.round(b.amount*b.odds);detail=`${b.amount}🪙 × ${b.odds}x → pot. ${pot}🪙`;pending++;}
+    else if(b.won===true){cls='won';tag=`+${Math.round(b.amount*b.odds)}🪙 won`;tagCls='t-won';
+      detail=`${b.amount}🪙 × ${b.odds}x`;won++;winCoins+=Math.round(b.amount*b.odds);}
+    else{cls='lost';tag='Lost';tagCls='t-lost';detail=`${b.amount}🪙 lost`;lost++;}
     const cancelBtn=(!b.isOutright&&!b.settled&&!b.refunded&&!S.results[b.mid])
       ?`<button class="btn-cancel-bet" onclick="cancelBet('${b.mid}','${b.bid}')">✕ Cancel</button>`:'';
-
     html+=`<div class="bet-item ${cls}">
       <div class="bi-head">
         <span class="bi-match">${esc(matchLabel)}</span>
@@ -170,7 +114,6 @@ function renderMyBets(){
       ${cancelBtn?`<div style="text-align:right;margin-top:.35rem">${cancelBtn}</div>`:''}
     </div>`;
   }
-
   const summary=`<div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap">
     <div class="stat-chip"><strong>${pending}</strong> pending</div>
     <div class="stat-chip"><strong>${won}</strong> won</div>
@@ -180,46 +123,43 @@ function renderMyBets(){
   el.innerHTML=summary+html;
 }
 
-/* ──────────────────────────────────────────────────────────
-   FIX 3: Manual name entry — replace window.prompt with
-   inline form (prompt is blocked on many mobile browsers)
-   ────────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded',()=>{
-
-  // Inject inline guest input row right after the loginBtn
+/* ── FIX 3: Manueller Login — SOFORT ausführen, kein DOMContentLoaded nötig ──
+   (externes <script> lädt NACH dem DOM, deshalb ist document.getElementById sofort verfügbar) */
+(function applyLoginFix(){
   const loginBtn=document.getElementById('loginBtn');
-  if(loginBtn && !document.getElementById('guestRow')){
+  if(!loginBtn){
+    // Fallback: falls doch noch nicht geladen, kurz warten
+    setTimeout(applyLoginFix, 100);
+    return;
+  }
+  // Inline-Eingabefeld einfügen falls noch nicht vorhanden
+  if(!document.getElementById('guestRow')){
     const row=document.createElement('div');
     row.id='guestRow';
     row.style.cssText='display:none;margin-top:.6rem;width:100%;max-width:400px';
     row.innerHTML=`<div class="guest-row">
       <input type="text" class="guest-input" id="guestNameInp"
-        placeholder="Your full name…"
-        autocomplete="off" autocorrect="off" autocapitalize="words"
-        style="flex:1;font-size:16px">
-      <button class="guest-btn" id="guestGoBtn">Go →</button>
+        placeholder="Your full name\u2026"
+        autocomplete="off" autocorrect="off" autocapitalize="words">
+      <button class="guest-btn" id="guestGoBtn">Go \u2192</button>
     </div>`;
     loginBtn.insertAdjacentElement('afterend',row);
   }
-
-  // FIX 3: loginBtn shows/hides the inline input instead of calling prompt()
-  document.getElementById('loginBtn').onclick=()=>{
+  // onclick überschreiben — kein window.prompt mehr
+  loginBtn.onclick=()=>{
     const row=document.getElementById('guestRow');
     if(!row) return;
-    const isHidden=row.style.display==='none';
-    row.style.display=isHidden?'block':'none';
-    if(isHidden) setTimeout(()=>document.getElementById('guestNameInp')?.focus(),50);
+    const hidden=row.style.display==='none';
+    row.style.display=hidden?'block':'none';
+    if(hidden) setTimeout(()=>document.getElementById('guestNameInp')?.focus(),50);
   };
-
-  const _doGuest=()=>{
+  const doGuest=()=>{
     const name=(document.getElementById('guestNameInp')?.value||'').trim();
     if(!name){toast('Please enter your name','error');return;}
     login(name);
   };
-
-  document.getElementById('guestGoBtn')?.addEventListener('click',_doGuest);
+  document.getElementById('guestGoBtn')?.addEventListener('click',doGuest);
   document.getElementById('guestNameInp')?.addEventListener('keydown',e=>{
-    if(e.key==='Enter') _doGuest();
+    if(e.key==='Enter') doGuest();
   });
-
-}, {once:true}); // once:true so this doesn't conflict with the original DOMContentLoaded
+})();
