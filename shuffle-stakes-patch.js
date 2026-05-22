@@ -1,10 +1,7 @@
-/* Shuffle Stakes – patch.js v6
-   Fixes: outright picks not showing in My Bets
-*/
+/* Shuffle Stakes – patch.js v7 */
 (function () {
   const POLL = 400;
 
-  /* ── helpers ── */
   function sk(name) {
     return name ? name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') : null;
   }
@@ -19,32 +16,25 @@
     }, interval);
   }
 
-  /* ── Firebase ref helper ── */
   function fbRef(path) {
     return firebase.database().ref(path);
   }
 
-  /* ── Load outright config (questions list) ── */
   let OR_CFG = {};
   fbRef('shufflecup2026_betting/outright_cfg').once('value', snap => {
     OR_CFG = snap.val() || {};
   });
 
-  /* ── Inject outright picks into My Bets tab ── */
   function injectOrBets() {
     if (!window.S || !S.user) return;
     const picks = S.myOrPicks || {};
     if (!Object.keys(picks).length) return;
 
-    // Find the bets list container
-    const container = document.querySelector('.bets-list') || document.querySelector('[class*="bets"]');
+    const container = document.getElementById('myBetsList');
     if (!container) return;
 
-    // Remove previously injected outright rows
-    document.querySelectorAll('.or-injected-row').forEach(el => el.remove());
-
-    // Also update pending count badge
-    let pendingCount = parseInt((document.querySelector('.tab-pending') || {}).textContent) || 0;
+    // Remove old injected rows
+    container.querySelectorAll('.or-injected-row').forEach(el => el.remove());
 
     Object.entries(picks).forEach(([qid, pick]) => {
       if (!pick || pick.settled) return;
@@ -53,7 +43,7 @@
       const pot = Math.round(pick.amount * pick.odds);
 
       const row = document.createElement('div');
-      row.className = 'bet-row or-injected-row';
+      row.className = 'bet-item pending or-injected-row';
       row.style.cssText = 'padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center;';
       row.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:4px;">
@@ -70,34 +60,20 @@
       `;
       container.prepend(row);
     });
-
-    // Update pending badge
-    const badge = document.querySelector('.tab-btn[data-tab="pending"] .count, [class*="pending"] [class*="count"]');
-    if (badge) {
-      const existing = parseInt(badge.textContent) || 0;
-      const orPending = Object.values(picks).filter(p => p && !p.settled).length;
-      // badge.textContent = existing + orPending; // only if needed
-    }
   }
 
-  /* ── Watch My Bets tab for render, then inject ── */
   function _watchMyBets() {
-    // MutationObserver on bets area
-    const target = document.querySelector('main') || document.body;
-    let injectQueued = false;
-
+    const target = document.body;
+    let queued = false;
     const obs = new MutationObserver(() => {
-      if (injectQueued) return;
-      injectQueued = true;
-      setTimeout(() => { injectOrBets(); injectQueued = false; }, 120);
+      if (queued) return;
+      queued = true;
+      setTimeout(() => { injectOrBets(); queued = false; }, 150);
     });
     obs.observe(target, { childList: true, subtree: true });
-
-    // Also poll as fallback
     setInterval(injectOrBets, POLL);
   }
 
-  /* ── Setup Firebase listener for S.myOrPicks ── */
   function _setupOrPicksListener() {
     const key = sk(S.user);
     if (!key) return;
@@ -108,7 +84,6 @@
       });
   }
 
-  /* ── Patch orPlaceBet to update local state immediately ── */
   waitFor(() => typeof window.orPlaceBet === 'function', () => {
     const _orig = window.orPlaceBet;
     window.orPlaceBet = async function (qid, pick, amount, odds) {
@@ -120,12 +95,11 @@
     };
   }, 300, 10000);
 
-  /* ── Boot: wait for S.user, then activate ── */
   waitFor(() => window.S && S.user, () => {
     if (!S.myOrPicks) S.myOrPicks = {};
     _setupOrPicksListener();
     _watchMyBets();
   }, 500, 20000);
 
-  console.log('[patch v6] loaded');
+  console.log('[patch v7] loaded');
 })();
