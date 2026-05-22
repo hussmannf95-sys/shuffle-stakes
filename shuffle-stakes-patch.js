@@ -1,6 +1,6 @@
-/* Shuffle Stakes – patch.js v7 */
+/* Shuffle Stakes – patch.js v8 */
 (function () {
-  const POLL = 400;
+  const POLL = 1000;
 
   function sk(name) {
     return name ? name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') : null;
@@ -16,9 +16,7 @@
     }, interval);
   }
 
-  function fbRef(path) {
-    return firebase.database().ref(path);
-  }
+  function fbRef(path) { return firebase.database().ref(path); }
 
   let OR_CFG = {};
   fbRef('shufflecup2026_betting/outright_cfg').once('value', snap => {
@@ -29,19 +27,13 @@
     if (!window.S || !S.user) return;
     const picks = S.myOrPicks || {};
     if (!Object.keys(picks).length) return;
-
     const container = document.getElementById('myBetsList');
     if (!container) return;
-
-    // Remove old injected rows
     container.querySelectorAll('.or-injected-row').forEach(el => el.remove());
-
     Object.entries(picks).forEach(([qid, pick]) => {
       if (!pick || pick.settled) return;
-
       const label = (OR_CFG[qid] && OR_CFG[qid].label) || qid;
       const pot = Math.round(pick.amount * pick.odds);
-
       const row = document.createElement('div');
       row.className = 'bet-item pending or-injected-row';
       row.style.cssText = 'padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;justify-content:space-between;align-items:center;';
@@ -60,30 +52,67 @@
       `;
       container.prepend(row);
     });
+    console.log('[patch v8] injected', Object.keys(picks).length, 'OR row(s)');
+  }
+
+  /* ── Container-Observer: direkt auf #myBetsList ─────────────────── */
+  let _cObs = null;
+
+  function _attachContainerObs() {
+    const container = document.getElementById('myBetsList');
+    if (!container) return;
+    if (_cObs) _cObs.disconnect();
+
+    _cObs = new MutationObserver(() => {
+      // Nur reagieren wenn UNSERE Rows verschwunden sind
+      if (container.querySelectorAll('.or-injected-row').length === 0) {
+        _cObs.disconnect();          // Feedback-Loop verhindern
+        injectOrBets();
+        setTimeout(() => {           // Nach dem Inject wieder beobachten
+          if (_cObs) _cObs.observe(container, { childList: true });
+        }, 0);
+      }
+    });
+
+    _cObs.observe(container, { childList: true });
+    injectOrBets(); // Sofort beim Attach injizieren
   }
 
   function _watchMyBets() {
-    const target = document.body;
-    let queued = false;
-    const obs = new MutationObserver(() => {
-      if (queued) return;
-      queued = true;
-      setTimeout(() => { injectOrBets(); queued = false; }, 150);
+    // Body-Observer: falls #myBetsList beim Tab-Wechsel komplett neu gebaut wird
+    const bodyObs = new MutationObserver(() => {
+      const container = document.getElementById('myBetsList');
+      if (container && container.querySelectorAll('.or-injected-row').length === 0) {
+        _attachContainerObs();
+      }
     });
-    obs.observe(target, { childList: true, subtree: true });
-    setInterval(injectOrBets, POLL);
+    bodyObs.observe(document.body, { childList: true, subtree: false }); // subtree:false = schneller
+
+    _attachContainerObs(); // Initial
+
+    // Fallback-Poll (Sicherheitsnetz)
+    setInterval(() => {
+      const c = document.getElementById('myBetsList');
+      if (c && c.querySelectorAll('.or-injected-row').length === 0 &&
+          Object.keys(S.myOrPicks || {}).length > 0) {
+        console.log('[patch v8] poll-fallback: re-injecting');
+        _attachContainerObs();
+      }
+    }, POLL);
   }
 
-  function _setupOrPicksListener() {
-    const key = sk(S.user);
-    if (!key) return;
-    fbRef('shufflecup2026_betting/outright_picks/' + key)
-      .on('value', snap => {
-        S.myOrPicks = snap.val() || {};
-        injectOrBets();
-      });
-  }
+  /* ── renderMyBets wrappen falls auf window verfügbar ────────────── */
+  waitFor(() => typeof window.renderMyBets === 'function', () => {
+    const _orig = window.renderMyBets;
+    window.renderMyBets = function () {
+      const r = _orig.apply(this, arguments);
+      setTimeout(injectOrBets, 0); // Nach dem Original-Render sofort nachinjizieren
+      return r;
+    };
+    console.log('[patch v8] renderMyBets wrapped');
+  }, 300, 8000);
 
+  /* ── orPlaceBet wrappen ──────────────────────────────────────────── */
   waitFor(() => typeof window.orPlaceBet === 'function', () => {
     const _orig = window.orPlaceBet;
     window.orPlaceBet = async function (qid, pick, amount, odds) {
@@ -95,11 +124,13 @@
     };
   }, 300, 10000);
 
+  /* ── Init ────────────────────────────────────────────────────────── */
   waitFor(() => window.S && S.user, () => {
     if (!S.myOrPicks) S.myOrPicks = {};
-    _setupOrPicksListener();
+    fbRef('shufflecup2026_betting/outright_picks/' + sk(S.user))
+      .on('value', snap => { S.myOrPicks = snap.val() || {}; injectOrBets(); });
     _watchMyBets();
   }, 500, 20000);
 
-  console.log('[patch v7] loaded');
+  console.log('[patch v8] loaded');
 })();
