@@ -89,6 +89,11 @@
     const panel = getOrContainer();
     if (!panel) return;
     panel.innerHTML = '';
+// Empty-State Text anpassen
+const emptyEl = document.querySelector('#myBetsList .empty p, #myBetsList p');
+if (emptyEl && emptyEl.textContent.includes("haven't placed")) {
+  emptyEl.textContent = "No match bets yet — your outright bets are shown above.";
+}
     pending.forEach(([qid, pick]) => {
       const LABELS = { q1_overall: 'Overall Winner 🏆' };
       const label = (OR_CFG[qid] && OR_CFG[qid].label) || LABELS[qid] || qid;
