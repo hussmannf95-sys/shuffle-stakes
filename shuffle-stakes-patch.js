@@ -1,15 +1,8 @@
 /*
- * SHUFFLE STAKES — Bug-Fix Patch v2
- * ===================================
- * Fix 1: Coins update sofort nach Wette
- * Fix 2: My Bets zeigt Outright-Picks als Pending
- * Fix 3: Manueller Name — Inline-Eingabe statt blockiertem window.prompt
- *
- * Einfügen: direkt vor </script> am Ende der index.html
- * ODER als externe Datei: <script src="shuffle-stakes-patch.js"></script>
+ * SHUFFLE STAKES — Bug-Fix Patch v3
  */
 
-/* ── FIX 1a: orPlaceBet — zuverlässige Transaktion ── */
+/* ── FIX 1a: orPlaceBet ── */
 async function orPlaceBet(qid){
   if(!S.user){toast('Please log in first','error');return;}
   const pick=_orSel[qid];
@@ -39,10 +32,10 @@ async function orPlaceBet(qid){
     placedAt:firebase.database.ServerValue.TIMESTAMP,
     settled:false,won:false
   });
-  toast(`Q${q.n} saved: ${trunc(pick,14)} @ ${pickOdds}x ✓`,'success');
+  toast(`Q${q.n} saved: ${trunc(pick,14)} @ ${pickOdds}x \u2713`,'success');
 }
 
-/* ── FIX 1b: confirmBet — zuverlässige Transaktion ── */
+/* ── FIX 1b: confirmBet ── */
 async function confirmBet(){
   const{matchId,side,o1,o2}=S.bm;
   const amt=parseInt(document.getElementById('amtSlider')?.value)||5;
@@ -67,10 +60,10 @@ async function confirmBet(){
   closeBet();
   const p=parsePairing(matchId,S.pairings[matchId]);
   const sn=side==='player1'?p?.player1:p?.player2;
-  toast(`${amt}🪙 on ${trunc(sn,12)} @ ${o}x ✓`,'success');
+  toast(`${amt}\uD83E\uDE99 on ${trunc(sn,12)} @ ${o}x \u2713`,'success');
 }
 
-/* ── FIX 2: renderMyBets — zeigt auch Outright-Picks ── */
+/* ── FIX 2: renderMyBets ── */
 function renderMyBets(){
   const el=document.getElementById('myBetsList');
   const flat=[];
@@ -82,9 +75,9 @@ function renderMyBets(){
     flat.push({mid:qid,bid:qid,user:S.user,side:pick.pick,amount:pick.amount||0,
       odds:pick.odds||1,placedAt:pick.placedAt||0,settled:pick.settled||false,
       won:pick.won===true,refunded:false,isOutright:true,
-      outrightLabel:q?`🎯 Q${q.n}: ${q.title}`:`🎯 ${qid}`});
+      outrightLabel:q?`\uD83C\uDFAF Q${q.n}: ${q.title}`:`\uD83C\uDFAF ${qid}`});
   }
-  if(!flat.length){el.innerHTML='<div class="empty"><div class="icon">🎰</div><p>You haven\'t placed any bets yet.</p></div>';return;}
+  if(!flat.length){el.innerHTML='<div class="empty"><div class="icon">\uD83C\uDFB0</div><p>You haven\'t placed any bets yet.</p></div>';return;}
   flat.sort((a,b)=>(b.placedAt||0)-(a.placedAt||0));
   let html='';
   let pending=0,won=0,lost=0,winCoins=0;
@@ -94,21 +87,21 @@ function renderMyBets(){
     const matchLabel=b.isOutright?b.outrightLabel:b.mid;
     const isPending=!b.settled;
     let cls,tag,tagCls,detail;
-    if(b.refunded){cls='refunded';tag='Refunded';tagCls='t-refund';detail=`${b.amount}🪙 returned`;}
+    if(b.refunded){cls='refunded';tag='Refunded';tagCls='t-refund';detail=`${b.amount}\uD83E\uDE99 returned`;}
     else if(isPending){cls='pending';tag='Pending';tagCls='t-pending';
-      const pot=Math.round(b.amount*b.odds);detail=`${b.amount}🪙 × ${b.odds}x → pot. ${pot}🪙`;pending++;}
-    else if(b.won===true){cls='won';tag=`+${Math.round(b.amount*b.odds)}🪙 won`;tagCls='t-won';
-      detail=`${b.amount}🪙 × ${b.odds}x`;won++;winCoins+=Math.round(b.amount*b.odds);}
-    else{cls='lost';tag='Lost';tagCls='t-lost';detail=`${b.amount}🪙 lost`;lost++;}
+      const pot=Math.round(b.amount*b.odds);detail=`${b.amount}\uD83E\uDE99 \xd7 ${b.odds}x \u2192 pot. ${pot}\uD83E\uDE99`;pending++;}
+    else if(b.won===true){cls='won';tag=`+${Math.round(b.amount*b.odds)}\uD83E\uDE99 won`;tagCls='t-won';
+      detail=`${b.amount}\uD83E\uDE99 \xd7 ${b.odds}x`;won++;winCoins+=Math.round(b.amount*b.odds);}
+    else{cls='lost';tag='Lost';tagCls='t-lost';detail=`${b.amount}\uD83E\uDE99 lost`;lost++;}
     const cancelBtn=(!b.isOutright&&!b.settled&&!b.refunded&&!S.results[b.mid])
-      ?`<button class="btn-cancel-bet" onclick="cancelBet('${b.mid}','${b.bid}')">✕ Cancel</button>`:'';
+      ?`<button class="btn-cancel-bet" onclick="cancelBet('${b.mid}','${b.bid}')">\u2715 Cancel</button>`:'';
     html+=`<div class="bet-item ${cls}">
       <div class="bi-head">
         <span class="bi-match">${esc(matchLabel)}</span>
         <span class="bi-tag ${tagCls}">${tag}</span>
       </div>
       <div class="bi-body">
-        <span class="bi-on">📌 ${esc(trunc(sideName,24))}</span>
+        <span class="bi-on">\uD83D\uDCCC ${esc(trunc(sideName,24))}</span>
         <span class="bi-amt">${esc(detail)}</span>
       </div>
       ${cancelBtn?`<div style="text-align:right;margin-top:.35rem">${cancelBtn}</div>`:''}
@@ -118,21 +111,17 @@ function renderMyBets(){
     <div class="stat-chip"><strong>${pending}</strong> pending</div>
     <div class="stat-chip"><strong>${won}</strong> won</div>
     <div class="stat-chip"><strong>${lost}</strong> lost</div>
-    ${won?`<div class="stat-chip" style="color:var(--success)"><strong>+${winCoins}</strong>🪙 earnings</div>`:''}
+    ${won?`<div class="stat-chip" style="color:var(--success)"><strong>+${winCoins}</strong>\uD83E\uDE99 earnings</div>`:''}
   </div>`;
   el.innerHTML=summary+html;
 }
 
-/* ── FIX 3: Manueller Login — SOFORT ausführen, kein DOMContentLoaded nötig ──
-   (externes <script> lädt NACH dem DOM, deshalb ist document.getElementById sofort verfügbar) */
-(function applyLoginFix(){
+/* ── FIX 3: loginBtn — korrekte Reihenfolge
+   Problem: DOMContentLoaded-Handler im Originalcode setzt loginBtn.onclick = window.prompt
+   Lösung:  setTimeout(0) läuft NACH allen DOMContentLoaded-Handlern → überschreibt zuletzt ── */
+function _setupGuestLogin(){
   const loginBtn=document.getElementById('loginBtn');
-  if(!loginBtn){
-    // Fallback: falls doch noch nicht geladen, kurz warten
-    setTimeout(applyLoginFix, 100);
-    return;
-  }
-  // Inline-Eingabefeld einfügen falls noch nicht vorhanden
+  if(!loginBtn) return;
   if(!document.getElementById('guestRow')){
     const row=document.createElement('div');
     row.id='guestRow';
@@ -145,7 +134,6 @@ function renderMyBets(){
     </div>`;
     loginBtn.insertAdjacentElement('afterend',row);
   }
-  // onclick überschreiben — kein window.prompt mehr
   loginBtn.onclick=()=>{
     const row=document.getElementById('guestRow');
     if(!row) return;
@@ -162,4 +150,12 @@ function renderMyBets(){
   document.getElementById('guestNameInp')?.addEventListener('keydown',e=>{
     if(e.key==='Enter') doGuest();
   });
-})();
+}
+
+/* setTimeout(0) stellt sicher dass _setupGuestLogin NACH dem originalen
+   DOMContentLoaded-Handler läuft und loginBtn.onclick zuletzt setzt */
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(_setupGuestLogin,0));
+} else {
+  setTimeout(_setupGuestLogin,0);
+}
