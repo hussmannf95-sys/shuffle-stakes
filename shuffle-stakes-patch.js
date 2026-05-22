@@ -1,5 +1,5 @@
 /*
- * SHUFFLE STAKES — Bug-Fix Patch v4
+ * SHUFFLE STAKES — Bug-Fix Patch v5
  */
 
 /* ── FIX 1a: orPlaceBet ── */
@@ -27,11 +27,13 @@ async function orPlaceBet(qid){
   S.coins=txResult.snapshot.val()??S.coins;
   const _ce1=document.getElementById('hdrCoins');
   if(_ce1){_ce1.textContent=S.coins;_ce1.classList.add('animate');setTimeout(()=>_ce1.classList.remove('animate'),800);}
-  await db.ref(`shufflecup2026_betting/outright_picks/${userKey}/${qid}`).set({
-    pick,odds:pickOdds,amount,
+  const pickData={pick,odds:pickOdds,amount,
     placedAt:firebase.database.ServerValue.TIMESTAMP,
-    settled:false,won:false
-  });
+    settled:false,won:false};
+  await db.ref(`shufflecup2026_betting/outright_picks/${userKey}/${qid}`).set(pickData);
+  /* FIX v5: lokal sofort setzen damit My Bets es zeigt */
+  if(!S.myOrPicks) S.myOrPicks={};
+  S.myOrPicks[qid]={...pickData,placedAt:Date.now()};
   toast(`Q${q.n} saved: ${trunc(pick,14)} @ ${pickOdds}x \u2713`,'success');
 }
 
@@ -66,10 +68,11 @@ async function confirmBet(){
 /* ── FIX 2: renderMyBets ── */
 function renderMyBets(){
   const el=document.getElementById('myBetsList');
+  if(!el) return;
   const flat=[];
-  for(const[mid,bets] of Object.entries(S.myBets))
+  for(const[mid,bets] of Object.entries(S.myBets||{}))
     for(const[bid,b] of Object.entries(bets)) flat.push({mid,bid,...b,isOutright:false});
-  for(const[qid,pick] of Object.entries(S.myOrPicks)){
+  for(const[qid,pick] of Object.entries(S.myOrPicks||{})){
     if(!pick||!pick.pick) continue;
     const q=OUTRIGHT_QUESTIONS.find(x=>x.id===qid);
     flat.push({mid:qid,bid:qid,user:S.user,side:pick.pick,amount:pick.amount||0,
@@ -116,8 +119,50 @@ function renderMyBets(){
   el.innerHTML=summary+html;
 }
 
-/* ── FIX 3: Manueller Login
-   Inline-onclick direkt im HTML — keine addEventListener-Timing-Probleme ── */
+/* ── FIX 2b: Outright-Picks aus Firebase laden (v5 NEU) ──
+   Sobald S.user gesetzt ist, hängt ein Firebase-Listener
+   der S.myOrPicks live befüllt und My Bets neu rendert.    */
+let _orListenerSet=false;
+function _setupOrPicksListener(){
+  if(_orListenerSet||!window.S?.user||!window.db) return;
+  _orListenerSet=true;
+  const userKey=sk(S.user);
+  db.ref(`shufflecup2026_betting/outright_picks/${userKey}`).on('value',snap=>{
+    S.myOrPicks=snap.val()||{};
+    /* Falls My-Bets-Tab gerade sichtbar ist: sofort neu rendern */
+    const el=document.getElementById('myBetsList');
+    if(el&&el.offsetParent!==null) renderMyBets();
+  });
+}
+
+/* ── FIX 2c: My-Bets-Tab abfangen (v5 NEU) ──
+   Falls die Original-Funktion in einer Closure liegt und
+   unsere renderMyBets() nicht aufruft, erzwingen wir es hier. */
+let _prevBetsHTML='__init__';
+function _watchMyBets(){
+  const el=document.getElementById('myBetsList');
+  if(!el||el.offsetParent===null) return; /* Tab nicht sichtbar */
+  if(el.innerHTML===_prevBetsHTML) return;
+  _prevBetsHTML=el.innerHTML;
+  /* Wenn Original "keine Wetten" zeigt, wir aber Picks haben → fix */
+  if(el.innerHTML.includes("haven't placed")&&Object.keys(S?.myOrPicks||{}).length>0){
+    renderMyBets();
+  }
+}
+
+/* Poll: Login abwarten, dann Listener setzen */
+const _loginPoll=setInterval(()=>{
+  if(window.S?.user){
+    _setupOrPicksListener();
+    clearInterval(_loginPoll);
+  }
+},500);
+
+/* Poll: My Bets Tab überwachen */
+setInterval(_watchMyBets,300);
+
+
+/* ── FIX 3: Manueller Login ── */
 function _doGuestLogin(){
   const inp=document.getElementById('guestNameInp');
   const name=(inp?.value||'').trim();
@@ -132,7 +177,6 @@ function _setupGuestLogin(){
     const row=document.createElement('div');
     row.id='guestRow';
     row.style.cssText='display:none;margin-top:.6rem;width:100%;max-width:400px';
-    /* onclick direkt im HTML-String — zuverlässiger als addEventListener */
     row.innerHTML=`<div class="guest-row">
       <input type="text" class="guest-input" id="guestNameInp"
         placeholder="Your full name\u2026"
@@ -142,7 +186,6 @@ function _setupGuestLogin(){
     </div>`;
     loginBtn.insertAdjacentElement('afterend',row);
   }
-  /* loginBtn zeigt/versteckt das Eingabefeld */
   loginBtn.onclick=()=>{
     const row=document.getElementById('guestRow');
     if(!row) return;
@@ -152,7 +195,6 @@ function _setupGuestLogin(){
   };
 }
 
-/* Nach DOMContentLoaded + setTimeout(0) = läuft nach ALLEN anderen Handlern */
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(_setupGuestLogin,0));
 }else{
