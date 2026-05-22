@@ -1,6 +1,67 @@
-/* Shuffle Stakes – patch.js v14 */
+/* Shuffle Stakes – patch.js v16 */
 (function () {
 
+  /* ── PIN Gate ────────────────────────────────────────────────────── */
+  const CORRECT_PIN = 'oslo';
+
+  function _showPinGate() {
+    const overlay = document.createElement('div');
+    overlay.id = 'pin-gate-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,15,30,0.97);z-index:999999;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `
+      <div style="background:#1a1a2e;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:36px 32px;width:320px;display:flex;flex-direction:column;gap:16px;text-align:center;">
+        <div style="font-size:28px;">🏆</div>
+        <div style="color:#f5c842;font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:700;">Shuffle Stakes</div>
+        <div style="color:#aaa;font-size:13px;">Enter the event password to continue</div>
+        <input id="pin-input" type="password" placeholder="Password..."
+          style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:12px 16px;color:white;font-size:16px;outline:none;width:100%;box-sizing:border-box;text-align:center;letter-spacing:2px;" />
+        <div id="pin-error" style="color:#ff6b6b;font-size:12px;min-height:16px;"></div>
+        <button id="pin-ok"
+          style="background:#f5c842;color:#1a1a2e;border:none;border-radius:8px;padding:12px;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;width:100%;">
+          Enter
+        </button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const input   = overlay.querySelector('#pin-input');
+    const okBtn   = overlay.querySelector('#pin-ok');
+    const errMsg  = overlay.querySelector('#pin-error');
+
+    input.focus();
+
+    const attempt = () => {
+      if (input.value.trim().toLowerCase() === CORRECT_PIN) {
+        sessionStorage.setItem('ss_auth', '1');
+        overlay.remove();
+        console.log('[patch v16] PIN accepted');
+      } else {
+        errMsg.textContent = 'Wrong password — try again.';
+        input.value = '';
+        input.focus();
+      }
+    };
+
+    okBtn.addEventListener('click', attempt);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+  }
+
+  function _initPinGate() {
+    if (sessionStorage.getItem('ss_auth') === '1') {
+      console.log('[patch v16] PIN already verified this session');
+      return;
+    }
+    // Wait for body, then show gate
+    if (document.body) {
+      _showPinGate();
+    } else {
+      document.addEventListener('DOMContentLoaded', _showPinGate);
+    }
+  }
+
+  _initPinGate();
+
+  /* ── Helpers ─────────────────────────────────────────────────────── */
   function userKey(name) {
     return name ? name.trim().replace(/\s+/g, '_') : null;
   }
@@ -17,11 +78,9 @@
     const btn = buttons.find(b => b.textContent.toLowerCase().includes('enter name manually'));
     if (!btn || btn._patched) return;
     btn._patched = true;
-
     btn.addEventListener('click', function (e) {
       e.stopImmediatePropagation();
       e.preventDefault();
-
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center;';
       overlay.innerHTML = `
@@ -40,34 +99,27 @@
         </div>
       `;
       document.body.appendChild(overlay);
-
-      const input = overlay.querySelector('#patch-name-input');
-      const okBtn = overlay.querySelector('#patch-name-ok');
+      const input   = overlay.querySelector('#patch-name-input');
+      const okBtn   = overlay.querySelector('#patch-name-ok');
       const cancelBtn = overlay.querySelector('#patch-name-cancel');
       input.focus();
-
       const confirm = () => {
         const val = input.value.trim();
         document.body.removeChild(overlay);
-        if (val && typeof login === 'function') {
-          login(val);
-        }
+        if (val && typeof login === 'function') login(val);
       };
       const cancel = () => document.body.removeChild(overlay);
-
       okBtn.addEventListener('click', confirm);
       cancelBtn.addEventListener('click', cancel);
       input.addEventListener('keydown', e => {
         if (e.key === 'Enter') confirm();
         if (e.key === 'Escape') cancel();
       });
-
-    }, true); // capture:true = vor App-Handler
-
-    console.log('[patch v14] manual login button patched');
+    }, true);
+    console.log('[patch v16] manual login button patched');
   }
 
-  /* ── OR-Bets Container ──────────────────────────────────────────── */
+  /* ── OR Bets Panel ───────────────────────────────────────────────── */
   function getOrContainer() {
     let el = document.getElementById('or-bets-panel');
     if (el) return el;
@@ -79,21 +131,19 @@
     return el;
   }
 
-  /* ── Inject ─────────────────────────────────────────────────────── */
   function injectOrBets() {
     if (typeof S === 'undefined' || !S.user) return;
     const picks = S.myOrPicks || {};
     const pending = Object.entries(picks).filter(([, p]) => p && !p.settled);
-    console.log('[patch v14] injectOrBets — pending:', pending.length);
+    console.log('[patch v16] injectOrBets — pending:', pending.length);
     if (!pending.length) return;
     const panel = getOrContainer();
     if (!panel) return;
     panel.innerHTML = '';
-// Empty-State Text anpassen
-const emptyEl = document.querySelector('#myBetsList .empty p, #myBetsList p');
-if (emptyEl && emptyEl.textContent.includes("haven't placed")) {
-  emptyEl.textContent = "No match bets yet — your outright bets are shown above.";
-}
+    const emptyEl = document.querySelector('#myBetsList .empty p, #myBetsList p');
+    if (emptyEl && emptyEl.textContent.includes("haven't placed")) {
+      emptyEl.textContent = "No match bets yet — your outright bets are shown above.";
+    }
     pending.forEach(([qid, pick]) => {
       const LABELS = { q1_overall: 'Overall Winner 🏆' };
       const label = (OR_CFG[qid] && OR_CFG[qid].label) || LABELS[qid] || qid;
@@ -116,11 +166,10 @@ if (emptyEl && emptyEl.textContent.includes("haven't placed")) {
       `;
       panel.appendChild(row);
     });
-    console.log('[patch v14] injected', pending.length, 'OR row(s)');
+    console.log('[patch v16] injected', pending.length, 'OR row(s)');
   }
   window._patchInject = injectOrBets;
 
-  /* ── renderMyBets wrappen ───────────────────────────────────────── */
   function _tryWrapRenderMyBets() {
     if (typeof window.renderMyBets === 'function' && !window.renderMyBets._patched) {
       const _orig = window.renderMyBets;
@@ -130,11 +179,10 @@ if (emptyEl && emptyEl.textContent.includes("haven't placed")) {
         return r;
       };
       window.renderMyBets._patched = true;
-      console.log('[patch v14] renderMyBets wrapped');
+      console.log('[patch v16] renderMyBets wrapped');
     }
   }
 
-  /* ── Firebase Listener ──────────────────────────────────────────── */
   let _listenerActive = false;
   function _setupOrPicksListener() {
     if (_listenerActive) return;
@@ -146,10 +194,9 @@ if (emptyEl && emptyEl.textContent.includes("haven't placed")) {
         S.myOrPicks = snap.val() || {};
         injectOrBets();
       });
-    console.log('[patch v14] listener for key:', key);
+    console.log('[patch v16] listener for key:', key);
   }
 
-  /* ── orPlaceBet wrappen ─────────────────────────────────────────── */
   function _tryWrapOrPlaceBet() {
     if (typeof window.orPlaceBet === 'function' && !window.orPlaceBet._patched) {
       const _orig = window.orPlaceBet;
@@ -164,7 +211,6 @@ if (emptyEl && emptyEl.textContent.includes("haven't placed")) {
     }
   }
 
-  /* ── Haupt-Poll ─────────────────────────────────────────────────── */
   setInterval(() => {
     _tryWrapRenderMyBets();
     _tryWrapOrPlaceBet();
@@ -179,5 +225,5 @@ if (emptyEl && emptyEl.textContent.includes("haven't placed")) {
     }
   }, 500);
 
-  console.log('[patch v14] loaded');
+  console.log('[patch v16] loaded');
 })();
