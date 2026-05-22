@@ -1,11 +1,9 @@
-/* Shuffle Stakes – patch.js v11 */
+/* Shuffle Stakes – patch.js v12 */
 (function () {
 
-  // FIX: gleiche Key-Logik wie die App (kein lowercase, ß bleibt)
   function userKey(name) {
     return name ? name.trim().replace(/\s+/g, '_') : null;
   }
-
   function fbRef(path) { return firebase.database().ref(path); }
 
   let OR_CFG = {};
@@ -25,10 +23,10 @@
   }
 
   function injectOrBets() {
-    if (!window.S || !S.user) return;
+    if (typeof S === 'undefined' || !S.user) return;  // FIX
     const picks = S.myOrPicks || {};
     const pending = Object.entries(picks).filter(([, p]) => p && !p.settled);
-    console.log('[patch v11] injectOrBets — pending:', pending.length);
+    console.log('[patch v12] injectOrBets — pending:', pending.length);
     if (!pending.length) return;
     const panel = getOrContainer();
     if (!panel) return;
@@ -54,7 +52,7 @@
       `;
       panel.appendChild(row);
     });
-    console.log('[patch v11] injected', pending.length, 'OR row(s)');
+    console.log('[patch v12] injected', pending.length, 'OR row(s)');
   }
   window._patchInject = injectOrBets;
 
@@ -67,23 +65,23 @@
         return r;
       };
       window.renderMyBets._patched = true;
-      console.log('[patch v11] renderMyBets wrapped');
+      console.log('[patch v12] renderMyBets wrapped');
     }
   }
 
   let _listenerActive = false;
   function _setupOrPicksListener() {
     if (_listenerActive) return;
-    const key = userKey(S.user); // FIX: userKey statt sk
+    const key = userKey(S.user);
     if (!key) return;
     _listenerActive = true;
     fbRef('shufflecup2026_betting/outright_picks/' + key)
       .on('value', snap => {
         S.myOrPicks = snap.val() || {};
-        console.log('[patch v11] picks loaded:', JSON.stringify(S.myOrPicks));
+        console.log('[patch v12] picks:', JSON.stringify(S.myOrPicks));
         injectOrBets();
       });
-    console.log('[patch v11] listener for key:', key);
+    console.log('[patch v12] listener for key:', key);
   }
 
   function _tryWrapOrPlaceBet() {
@@ -103,7 +101,7 @@
   setInterval(() => {
     _tryWrapRenderMyBets();
     _tryWrapOrPlaceBet();
-    if (!window.S || !S.user) return;
+    if (typeof S === 'undefined' || !S.user) return;  // FIX
     if (!_listenerActive) _setupOrPicksListener();
     const picks = S.myOrPicks || {};
     const pending = Object.values(picks).filter(p => p && !p.settled);
@@ -113,5 +111,5 @@
     }
   }, 500);
 
-  console.log('[patch v11] loaded');
+  console.log('[patch v12] loaded');
 })();
