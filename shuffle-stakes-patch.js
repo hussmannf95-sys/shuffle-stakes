@@ -1,5 +1,5 @@
 /*
- * SHUFFLE STAKES — Bug-Fix Patch v3
+ * SHUFFLE STAKES — Bug-Fix Patch v4
  */
 
 /* ── FIX 1a: orPlaceBet ── */
@@ -23,7 +23,7 @@ async function orPlaceBet(qid){
     if(c<netCost) return undefined;
     return c-netCost;
   });
-  if(!txResult.committed){toast('Transaction failed — try again','error');return;}
+  if(!txResult.committed){toast('Transaction failed \u2014 try again','error');return;}
   S.coins=txResult.snapshot.val()??S.coins;
   const _ce1=document.getElementById('hdrCoins');
   if(_ce1){_ce1.textContent=S.coins;_ce1.classList.add('animate');setTimeout(()=>_ce1.classList.remove('animate'),800);}
@@ -48,7 +48,7 @@ async function confirmBet(){
     if(c<amt) return undefined;
     return c-amt;
   });
-  if(!txResult2.committed){toast('Coin transaction failed — try again','error');return;}
+  if(!txResult2.committed){toast('Coin transaction failed \u2014 try again','error');return;}
   S.coins=txResult2.snapshot.val()??S.coins;
   const _ce2=document.getElementById('hdrCoins');
   if(_ce2){_ce2.textContent=S.coins;_ce2.classList.add('animate');setTimeout(()=>_ce2.classList.remove('animate'),800);}
@@ -116,9 +116,15 @@ function renderMyBets(){
   el.innerHTML=summary+html;
 }
 
-/* ── FIX 3: loginBtn — korrekte Reihenfolge
-   Problem: DOMContentLoaded-Handler im Originalcode setzt loginBtn.onclick = window.prompt
-   Lösung:  setTimeout(0) läuft NACH allen DOMContentLoaded-Handlern → überschreibt zuletzt ── */
+/* ── FIX 3: Manueller Login
+   Inline-onclick direkt im HTML — keine addEventListener-Timing-Probleme ── */
+function _doGuestLogin(){
+  const inp=document.getElementById('guestNameInp');
+  const name=(inp?.value||'').trim();
+  if(!name){toast('Please enter your name','error');return;}
+  login(name);
+}
+
 function _setupGuestLogin(){
   const loginBtn=document.getElementById('loginBtn');
   if(!loginBtn) return;
@@ -126,14 +132,17 @@ function _setupGuestLogin(){
     const row=document.createElement('div');
     row.id='guestRow';
     row.style.cssText='display:none;margin-top:.6rem;width:100%;max-width:400px';
+    /* onclick direkt im HTML-String — zuverlässiger als addEventListener */
     row.innerHTML=`<div class="guest-row">
       <input type="text" class="guest-input" id="guestNameInp"
         placeholder="Your full name\u2026"
-        autocomplete="off" autocorrect="off" autocapitalize="words">
-      <button class="guest-btn" id="guestGoBtn">Go \u2192</button>
+        autocomplete="off" autocorrect="off" autocapitalize="words"
+        onkeydown="if(event.key==='Enter') _doGuestLogin();">
+      <button class="guest-btn" onclick="_doGuestLogin()">Go \u2192</button>
     </div>`;
     loginBtn.insertAdjacentElement('afterend',row);
   }
+  /* loginBtn zeigt/versteckt das Eingabefeld */
   loginBtn.onclick=()=>{
     const row=document.getElementById('guestRow');
     if(!row) return;
@@ -141,21 +150,11 @@ function _setupGuestLogin(){
     row.style.display=hidden?'block':'none';
     if(hidden) setTimeout(()=>document.getElementById('guestNameInp')?.focus(),50);
   };
-  const doGuest=()=>{
-    const name=(document.getElementById('guestNameInp')?.value||'').trim();
-    if(!name){toast('Please enter your name','error');return;}
-    login(name);
-  };
-  document.getElementById('guestGoBtn')?.addEventListener('click',doGuest);
-  document.getElementById('guestNameInp')?.addEventListener('keydown',e=>{
-    if(e.key==='Enter') doGuest();
-  });
 }
 
-/* setTimeout(0) stellt sicher dass _setupGuestLogin NACH dem originalen
-   DOMContentLoaded-Handler läuft und loginBtn.onclick zuletzt setzt */
+/* Nach DOMContentLoaded + setTimeout(0) = läuft nach ALLEN anderen Handlern */
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',()=>setTimeout(_setupGuestLogin,0));
-} else {
+}else{
   setTimeout(_setupGuestLogin,0);
 }
