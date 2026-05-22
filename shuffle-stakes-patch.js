@@ -1,9 +1,11 @@
-/* Shuffle Stakes – patch.js v10 */
+/* Shuffle Stakes – patch.js v11 */
 (function () {
 
-  function sk(name) {
-    return name ? name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') : null;
+  // FIX: gleiche Key-Logik wie die App (kein lowercase, ß bleibt)
+  function userKey(name) {
+    return name ? name.trim().replace(/\s+/g, '_') : null;
   }
+
   function fbRef(path) { return firebase.database().ref(path); }
 
   let OR_CFG = {};
@@ -11,7 +13,6 @@
     OR_CFG = snap.val() || {};
   });
 
-  /* ── Eigenen Container holen / erstellen ───────────────────────── */
   function getOrContainer() {
     let el = document.getElementById('or-bets-panel');
     if (el) return el;
@@ -23,17 +24,14 @@
     return el;
   }
 
-  /* ── Inject ─────────────────────────────────────────────────────── */
   function injectOrBets() {
     if (!window.S || !S.user) return;
     const picks = S.myOrPicks || {};
     const pending = Object.entries(picks).filter(([, p]) => p && !p.settled);
-    console.log('[patch v10] injectOrBets called, pending:', pending.length);
+    console.log('[patch v11] injectOrBets — pending:', pending.length);
     if (!pending.length) return;
-
     const panel = getOrContainer();
-    if (!panel) { console.log('[patch v10] no panel found'); return; }
-
+    if (!panel) return;
     panel.innerHTML = '';
     pending.forEach(([qid, pick]) => {
       const label = (OR_CFG[qid] && OR_CFG[qid].label) || qid;
@@ -56,11 +54,10 @@
       `;
       panel.appendChild(row);
     });
-    console.log('[patch v10] injected', pending.length, 'OR row(s) into #or-bets-panel');
+    console.log('[patch v11] injected', pending.length, 'OR row(s)');
   }
   window._patchInject = injectOrBets;
 
-  /* ── renderMyBets wrappen ───────────────────────────────────────── */
   function _tryWrapRenderMyBets() {
     if (typeof window.renderMyBets === 'function' && !window.renderMyBets._patched) {
       const _orig = window.renderMyBets;
@@ -70,26 +67,25 @@
         return r;
       };
       window.renderMyBets._patched = true;
-      console.log('[patch v10] renderMyBets wrapped');
+      console.log('[patch v11] renderMyBets wrapped');
     }
   }
 
-  /* ── Firebase-Listener ─────────────────────────────────────────── */
   let _listenerActive = false;
   function _setupOrPicksListener() {
     if (_listenerActive) return;
-    const key = sk(S.user);
+    const key = userKey(S.user); // FIX: userKey statt sk
     if (!key) return;
     _listenerActive = true;
     fbRef('shufflecup2026_betting/outright_picks/' + key)
       .on('value', snap => {
         S.myOrPicks = snap.val() || {};
+        console.log('[patch v11] picks loaded:', JSON.stringify(S.myOrPicks));
         injectOrBets();
       });
-    console.log('[patch v10] OR listener for', key);
+    console.log('[patch v11] listener for key:', key);
   }
 
-  /* ── orPlaceBet wrappen ─────────────────────────────────────────── */
   function _tryWrapOrPlaceBet() {
     if (typeof window.orPlaceBet === 'function' && !window.orPlaceBet._patched) {
       const _orig = window.orPlaceBet;
@@ -104,7 +100,6 @@
     }
   }
 
-  /* ── Haupt-Poll ─────────────────────────────────────────────────── */
   setInterval(() => {
     _tryWrapRenderMyBets();
     _tryWrapOrPlaceBet();
@@ -118,5 +113,5 @@
     }
   }, 500);
 
-  console.log('[patch v10] loaded');
+  console.log('[patch v11] loaded');
 })();
