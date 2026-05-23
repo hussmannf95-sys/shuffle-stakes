@@ -196,7 +196,7 @@ const ShuffleAuth = (() => {
           <button class="ss-key" data-n="ok">OK</button>
         </div>
         <div id="ss-auth-err"></div>
-        <button id="ss-auth-cancel">Abbrechen</button>
+        <button id="ss-auth-cancel">Cancel</button>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -231,7 +231,7 @@ const ShuffleAuth = (() => {
       if (entered.length < CFG.PIN_LENGTH) return;
       const ok = await onSubmit(entered);
       if (!ok) {
-        err.textContent = '❌ Falsche PIN – bitte erneut versuchen.';
+        err.textContent = '❌ Wrong PIN – please try again.';
         entered = '';
         updateDots();
       } else {
@@ -301,17 +301,17 @@ const ShuffleAuth = (() => {
 
         showPinDialog({
           title: `👋 Hallo ${name}`,
-          sub:   'Die App wurde um eine PIN-Absicherung erweitert. Erstelle jetzt deine persönliche PIN – deine bisherigen Tipps bleiben erhalten.',
+          sub:   'The app now requires a personal PIN. Create yours below — your existing bets and coins are safe.',
           onSubmit: async pin => {
             firstPin = pin;
             // Zweite Abfrage: Bestätigung
             return new Promise(r2 => {
               showPinDialog({
-                title: '🔁 PIN bestätigen',
-                sub:   'Gib deine PIN zur Bestätigung nochmal ein.',
+                title: '🔁 Confirm PIN',
+                sub:   'Enter your PIN again to confirm.',
                 onSubmit: async pinConfirm => {
                   if (pinConfirm !== firstPin) {
-                    return false; // PINs stimmen nicht überein
+                    return false; // PINs don't match
                   }
                   await Pins.set(name, pinConfirm);
                   Session.set(name);
@@ -331,7 +331,7 @@ const ShuffleAuth = (() => {
         /* Bekannter User → PIN prüfen */
         showPinDialog({
           title: `🔐 ${name}`,
-          sub:   'Gib deine PIN ein, um dich anzumelden.',
+          sub:   'Enter your PIN to sign in.',
           onSubmit: async pin => {
             const ok = await Pins.verify(name, pin);
             if (ok) { Session.set(name); resolve(true); }
@@ -385,7 +385,14 @@ const ShuffleAuth = (() => {
     return sha256(`admin:${pin}`);
   }
 
-  return { loginAs, currentUser, logout, verifyAdminPin, generateAdminPinHash };
+  return {
+    loginAs, currentUser, logout, verifyAdminPin, generateAdminPinHash,
+    // Admin-Lockout-Helfer (für das bestehende PIN-System in index.html)
+    adminFailed()         { AdminLock.recordFail(); },
+    adminSucceeded()      { AdminLock.reset(); },
+    adminIsLocked()       { return AdminLock.isLocked(); },
+    adminLockRemainingMs(){ return AdminLock.remainingMs(); },
+  };
 })();
 
 /* ══════════════════════════════════════════════════════════
