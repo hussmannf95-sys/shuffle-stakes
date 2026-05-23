@@ -1702,7 +1702,14 @@ function renderAdmin(){
     </div>
     <button class="btn btn-red" id="aDelBtn">🗑️ Delete User</button>
   </div>
-
+<div class="admin-sec">
+    <h3>🔑 User PIN zurücksetzen / Reset User PIN</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">User muss beim nächsten Login einen neuen PIN setzen.</p>
+    <div class="admin-row">
+      <input type="text" id="aResetPinUser" placeholder="Exact player name" style="flex:1">
+    </div>
+    <button class="btn btn-outline" id="aResetPinBtn">🔑 Reset PIN</button>
+  </div>
   <div class="admin-sec">
     <h3>🔑 Change Admin PIN</h3>
     <div class="admin-row">
@@ -1733,6 +1740,18 @@ function renderAdmin(){
   document.getElementById('aDelBtn')?.addEventListener('click',adminDeleteUser);
   document.getElementById('aPinBtn')?.addEventListener('click',adminPin);
   document.getElementById('aResetCoinsBtn')?.addEventListener('click', resetAllCoins);
+  document.getElementById('aResetPinBtn')?.addEventListener('click', async () => {
+    const name = document.getElementById('aResetPinUser')?.value?.trim();
+    if (!name) { toast('Enter player name', 'error'); return; }
+    if (!confirm(`PIN für "${name}" zurücksetzen?`)) return;
+    try {
+      await ShuffleAuth.adminResetPin(name);
+      document.getElementById('aResetPinUser').value = '';
+      toast(`PIN für ${name} zurückgesetzt ✓`, 'success');
+    } catch(e) {
+      toast('Fehler: ' + e.message, 'error');
+    }
+  });
 }
 
 function updateWinnerRow(){
