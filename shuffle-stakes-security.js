@@ -143,7 +143,7 @@ const ShuffleAuth = (() => {
         border: 1px solid rgba(255,255,255,.08);
       }
       #ss-auth-title  { font-size: 1.15rem; font-weight: 700; margin-bottom: .3rem; }
-      #ss-auth-sub    { font-size: .82rem; color: #aaa; margin-bottom: 1.4rem; }
+      #ss-auth-sub    { font-size: .82rem; color: #aaa; margin-bottom: 1.4rem; white-space: pre-line; }
       #ss-auth-dots   {
         display: flex; justify-content: center; gap: .6rem;
         margin-bottom: 1.2rem;
@@ -231,7 +231,7 @@ const ShuffleAuth = (() => {
       if (entered.length < CFG.PIN_LENGTH) return;
       const ok = await onSubmit(entered);
       if (!ok) {
-        err.textContent = '❌ Wrong PIN – please try again.';
+        err.textContent = '❌ Wrong PIN – please try again. / Falsche PIN – bitte erneut versuchen.';
         entered = '';
         updateDots();
       } else {
@@ -301,14 +301,14 @@ const ShuffleAuth = (() => {
 
         showPinDialog({
           title: `👋 Hallo ${name}`,
-          sub:   'The app now requires a personal PIN. Create yours below — your existing bets and coins are safe.',
+          sub:   'The app now requires a personal PIN. Create yours below — your existing bets and coins are safe.\n\nDie App wurde um eine PIN-Absicherung erweitert. Erstelle jetzt deine persönliche PIN – deine bisherigen Tipps bleiben erhalten.',
           onSubmit: async pin => {
             firstPin = pin;
             // Zweite Abfrage: Bestätigung
             return new Promise(r2 => {
               showPinDialog({
                 title: '🔁 Confirm PIN',
-                sub:   'Enter your PIN again to confirm.',
+                sub:   'Enter your PIN again to confirm.\n\nGib deine PIN zur Bestätigung nochmal ein.',
                 onSubmit: async pinConfirm => {
                   if (pinConfirm !== firstPin) {
                     return false; // PINs don't match
@@ -331,7 +331,7 @@ const ShuffleAuth = (() => {
         /* Bekannter User → PIN prüfen */
         showPinDialog({
           title: `🔐 ${name}`,
-          sub:   'Enter your PIN to sign in.',
+          sub:   'Enter your PIN to sign in.\n\nGib deine PIN ein, um dich anzumelden.',
           onSubmit: async pin => {
             const ok = await Pins.verify(name, pin);
             if (ok) { Session.set(name); resolve(true); }
