@@ -1,454 +1,201 @@
-/**
- * =====================================================
- *  SHUFFLE STAKES — SECURITY PATCH v1.0
- * =====================================================
- *  Behebt:
- *  [1] Kein User-Schutz → 4-stellige PIN pro Spieler
- *  [2] Klartext-Passwort im Source → entfernt
- *  [3] Admin-PIN-Brute-Force → Rate-Limiting + Lockout
- *
- *  Einbindung: <script src="shuffle-stakes-security.js"></script>
- *  NACH dem Laden der App, BEVOR der User interagiert.
- * =====================================================
- */
-
+'use strict';
 const ShuffleAuth = (() => {
-  /* ─── Konfiguration ─────────────────────────────── */
-  const CFG = {
-    PIN_LENGTH:        4,
-    SESSION_TIMEOUT:   8 * 60 * 60 * 1000, // 8 Stunden in ms
-    ADMIN_MAX_TRIES:   5,                   // Versuche bis Lockout
-    ADMIN_LOCKOUT_MS:  10 * 60 * 1000,      // 10 Minuten Sperre
-    STORAGE_KEY_PINS:  'ss_pins_v1',
-    STORAGE_KEY_SESS:  'ss_session_v1',
-    STORAGE_KEY_ADMIN: 'ss_admin_lock_v1',
-  };
 
-  /* ─── Hilfsfunktionen ────────────────────────────── */
+  /* ── Config ── */
+  const DB        = 'https://shufflecup2026-default-rtdb.europe-west1.firebasedatabase.app';
+  const USERS_PATH = 'shufflecup2026_betting/users';
+  const SESSION   = 'ss_session_v1';
+  const LOCK      = 'ss_admin_lock_v1';
+  const SESSION_H = 8;
+  const MAX_FAIL  = 5;
+  const LOCK_MS   = 10 * 60 * 1000;
 
-  /** SHA-256 via Web Crypto API – gibt Hex-String zurück */
-  async function sha256(text) {
-    const buf  = await crypto.subtle.digest(
-      'SHA-256',
-      new TextEncoder().encode(text)
-    );
-    return Array.from(new Uint8Array(buf))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+  /* ── Crypto ── */
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
   }
 
-  /** Liest JSON sicher aus localStorage */
-  function lsGet(key, fallback = {}) {
-    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-    catch { return fallback; }
+  /* ── Firebase REST ── */
+  function fbKey(name) {
+    return encodeURIComponent(name.replace(/\s+/g, '_'));
   }
 
-  /** Schreibt JSON in localStorage */
-  function lsSet(key, val) {
-    localStorage.setItem(key, JSON.stringify(val));
+  async function fbRead(path) {
+    const r = await fetch(`${DB}/${path}.json`);
+    if (!r.ok) throw new Error('Firebase read ' + r.status);
+    return r.json(); // null wenn nicht vorhanden
   }
 
-  /* ─── PIN-Speicher ───────────────────────────────── */
-
-  const Pins = {
-    getAll() { return lsGet(CFG.STORAGE_KEY_PINS, {}); },
-
-    exists(name) { return !!this.getAll()[name]; },
-
-    async set(name, pin) {
-      const hash = await sha256(`${name}:${pin}`);
-      const all  = this.getAll();
-      all[name]  = hash;
-      lsSet(CFG.STORAGE_KEY_PINS, all);
-    },
-
-    async verify(name, pin) {
-      const hash = await sha256(`${name}:${pin}`);
-      return this.getAll()[name] === hash;
-    },
-  };
-
-  /* ─── Session-Verwaltung ─────────────────────────── */
-
-  const Session = {
-    get() { return lsGet(CFG.STORAGE_KEY_SESS, null); },
-
-    set(name) {
-      lsSet(CFG.STORAGE_KEY_SESS, { name, ts: Date.now() });
-    },
-
-    clear() { localStorage.removeItem(CFG.STORAGE_KEY_SESS); },
-
-    currentUser() {
-      const s = this.get();
-      if (!s) return null;
-      if (Date.now() - s.ts > CFG.SESSION_TIMEOUT) { this.clear(); return null; }
-      return s.name;
-    },
-
-    refresh() {
-      const s = this.get();
-      if (s) this.set(s.name);
-    },
-  };
-
-  /* ─── Admin-Lockout ──────────────────────────────── */
-
-  const AdminLock = {
-    get() { return lsGet(CFG.STORAGE_KEY_ADMIN, { tries: 0, lockedUntil: 0 }); },
-    set(val) { lsSet(CFG.STORAGE_KEY_ADMIN, val); },
-
-    isLocked() {
-      const s = this.get();
-      return Date.now() < s.lockedUntil;
-    },
-
-    remainingMs() {
-      return Math.max(0, this.get().lockedUntil - Date.now());
-    },
-
-    recordFail() {
-      const s    = this.get();
-      s.tries   += 1;
-      if (s.tries >= CFG.ADMIN_MAX_TRIES) {
-        s.lockedUntil = Date.now() + CFG.ADMIN_LOCKOUT_MS;
-        s.tries = 0;
-      }
-      this.set(s);
-    },
-
-    reset() {
-      this.set({ tries: 0, lockedUntil: 0 });
-    },
-  };
-
-  /* ─── PIN-Dialog (UI) ────────────────────────────── */
-
-  function buildDialog() {
-    if (document.getElementById('ss-auth-overlay')) return;
-
-    const style = document.createElement('style');
-    style.textContent = `
-      #ss-auth-overlay {
-        position: fixed; inset: 0; z-index: 9999;
-        background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
-        display: flex; align-items: center; justify-content: center;
-        font-family: inherit;
-      }
-      #ss-auth-box {
-        background: #1a1a2e; color: #eee;
-        border-radius: 1.2rem; padding: 2rem 1.5rem;
-        width: min(340px, 92vw); text-align: center;
-        box-shadow: 0 8px 40px rgba(0,0,0,.6);
-        border: 1px solid rgba(255,255,255,.08);
-      }
-      #ss-auth-title  { font-size: 1.15rem; font-weight: 700; margin-bottom: .3rem; }
-      #ss-auth-sub    { font-size: .82rem; color: #aaa; margin-bottom: 1.4rem; white-space: pre-line; }
-      #ss-auth-dots   {
-        display: flex; justify-content: center; gap: .6rem;
-        margin-bottom: 1.2rem;
-      }
-      .ss-dot {
-        width: 14px; height: 14px; border-radius: 50%;
-        border: 2px solid #555; transition: background .15s;
-      }
-      .ss-dot.filled { background: #f0a500; border-color: #f0a500; }
-      #ss-auth-pad    {
-        display: grid; grid-template-columns: repeat(3, 1fr);
-        gap: .5rem; margin-bottom: 1rem;
-      }
-      .ss-key {
-        background: rgba(255,255,255,.06); border: none;
-        color: #eee; font-size: 1.3rem; font-weight: 600;
-        padding: .7rem 0; border-radius: .6rem; cursor: pointer;
-        transition: background .1s;
-        touch-action: manipulation;
-      }
-      .ss-key:active, .ss-key:hover { background: rgba(255,255,255,.15); }
-      .ss-key.wide { grid-column: span 1; }
-      #ss-auth-err {
-        color: #e74c3c; font-size: .8rem; min-height: 1.1em;
-        margin-bottom: .5rem;
-      }
-      #ss-auth-cancel {
-        background: none; border: none; color: #777;
-        cursor: pointer; font-size: .8rem; text-decoration: underline;
-        padding: .3rem;
-      }
-    `;
-    document.head.appendChild(style);
-
-    const overlay = document.createElement('div');
-    overlay.id    = 'ss-auth-overlay';
-    overlay.innerHTML = `
-      <div id="ss-auth-box">
-        <div id="ss-auth-title"></div>
-        <div id="ss-auth-sub"></div>
-        <div id="ss-auth-dots">
-          ${Array(CFG.PIN_LENGTH).fill('<div class="ss-dot"></div>').join('')}
-        </div>
-        <div id="ss-auth-pad">
-          ${[1,2,3,4,5,6,7,8,9].map(n =>
-            `<button class="ss-key" data-n="${n}">${n}</button>`
-          ).join('')}
-          <button class="ss-key" data-n="del">⌫</button>
-          <button class="ss-key" data-n="0">0</button>
-          <button class="ss-key" data-n="ok">OK</button>
-        </div>
-        <div id="ss-auth-err"></div>
-        <button id="ss-auth-cancel">Cancel</button>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    overlay.style.display = 'none';
+  async function fbWrite(path, value) {
+    const r = await fetch(`${DB}/${path}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(value)
+    });
+    if (!r.ok) throw new Error('Firebase write ' + r.status);
   }
 
-  /**
-   * Zeigt den PIN-Dialog.
-   * @param {Object} opts
-   * @param {string}   opts.title
-   * @param {string}   opts.sub
-   * @param {Function} opts.onSubmit  async (pin: string) => boolean  — true = OK
-   * @param {Function} [opts.onCancel]
-   */
-  function showPinDialog({ title, sub, onSubmit, onCancel }) {
-    buildDialog();
-    const overlay = document.getElementById('ss-auth-overlay');
-    const dots    = overlay.querySelectorAll('.ss-dot');
-    const err     = document.getElementById('ss-auth-err');
-    let   entered = '';
-
-    document.getElementById('ss-auth-title').textContent = title;
-    document.getElementById('ss-auth-sub').textContent   = sub;
-    err.textContent = '';
-    overlay.style.display = 'flex';
-
-    function updateDots() {
-      dots.forEach((d, i) => d.classList.toggle('filled', i < entered.length));
-    }
-
-    async function trySubmit() {
-      if (entered.length < CFG.PIN_LENGTH) return;
-      const ok = await onSubmit(entered);
-      if (!ok) {
-        err.textContent = '❌ Wrong PIN – please try again. / Falsche PIN – bitte erneut versuchen.';
-        entered = '';
-        updateDots();
-      } else {
-        overlay.style.display = 'none';
-      }
-    }
-
-    // Pad-Clicks
-    overlay.querySelector('#ss-auth-pad').onclick = async e => {
-      const key = e.target.closest('[data-n]')?.dataset.n;
-      if (!key) return;
-      if (key === 'del') {
-        entered = entered.slice(0, -1);
-        err.textContent = '';
-      } else if (key === 'ok') {
-        await trySubmit();
-        return;
-      } else if (entered.length < CFG.PIN_LENGTH) {
-        entered += key;
-        if (entered.length === CFG.PIN_LENGTH) await trySubmit();
-      }
-      updateDots();
-    };
-
-    // Tastatur-Support
-    const kbHandler = async e => {
-      if (e.key >= '0' && e.key <= '9' && entered.length < CFG.PIN_LENGTH) {
-        entered += e.key;
-        updateDots();
-        if (entered.length === CFG.PIN_LENGTH) await trySubmit();
-      } else if (e.key === 'Backspace') {
-        entered = entered.slice(0, -1);
-        err.textContent = '';
-        updateDots();
-      } else if (e.key === 'Enter') {
-        await trySubmit();
-      } else if (e.key === 'Escape') {
-        closeAndCancel();
-      }
-    };
-    document.addEventListener('keydown', kbHandler);
-
-    function closeAndCancel() {
-      overlay.style.display = 'none';
-      document.removeEventListener('keydown', kbHandler);
-      onCancel?.();
-    }
-
-    document.getElementById('ss-auth-cancel').onclick = closeAndCancel;
-    updateDots();
+  async function fbDelete(path) {
+    const r = await fetch(`${DB}/${path}.json`, { method: 'DELETE' });
+    if (!r.ok) throw new Error('Firebase delete ' + r.status);
   }
 
-  /* ─── Öffentliche API ────────────────────────────── */
+  /* ── Session (bleibt lokal – nur "wer ist auf diesem Gerät eingeloggt") ── */
+  function getSession() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SESSION));
+      if (!s || Date.now() > s.exp) { localStorage.removeItem(SESSION); return null; }
+      return s;
+    } catch { return null; }
+  }
 
-  /**
-   * Muss aufgerufen werden, wenn ein User auf seinen Namen klickt.
-   * Gibt Promise<boolean> zurück – true wenn Login erfolgreich.
-   */
-  async function loginAs(name) {
-    // Schon eingeloggt als dieser User?
-    if (Session.currentUser() === name) return true;
+  function saveSession(name) {
+    localStorage.setItem(SESSION, JSON.stringify({
+      name, exp: Date.now() + SESSION_H * 3_600_000
+    }));
+  }
 
+  /* ── Dialog ── */
+  function pinDialog({ title, body, confirmLabel, withRepeat }) {
     return new Promise(resolve => {
-      if (!Pins.exists(name)) {
-        /* Erster Login → PIN setzen */
-        let firstPin = '';
+      const ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:99999;display:flex;align-items:center;justify-content:center';
+      ov.innerHTML = `
+        <div style="background:#12192b;border:1px solid #f5a623;border-radius:12px;padding:1.8rem 2rem;min-width:300px;max-width:88vw;color:#e8e8e8;font-family:inherit;box-shadow:0 8px 32px #000b">
+          <div style="font-size:1.15rem;font-weight:700;color:#f5a623;margin-bottom:.5rem">${title}</div>
+          <div style="font-size:.88rem;color:#bbb;margin-bottom:1rem;white-space:pre-line;line-height:1.5">${body}</div>
+          <input id=_p1 type=password maxlength=20 placeholder="PIN"
+            style="width:100%;padding:.55rem .8rem;margin:.3rem 0 .8rem;border-radius:6px;border:1px solid #f5a623;background:#0a1020;color:#fff;font-size:1rem;box-sizing:border-box"
+            autocomplete=new-password>
+          ${withRepeat ? `<input id=_p2 type=password maxlength=20 placeholder="PIN wiederholen / Repeat PIN"
+            style="width:100%;padding:.55rem .8rem;margin:.3rem 0 .8rem;border-radius:6px;border:1px solid #f5a623;background:#0a1020;color:#fff;font-size:1rem;box-sizing:border-box"
+            autocomplete=new-password>` : ''}
+          <div id=_err style="color:#ff5555;font-size:.82rem;min-height:1.1em;margin-bottom:.6rem"></div>
+          <div style="display:flex;gap:.6rem;justify-content:flex-end">
+            <button id=_cancel style="padding:.5rem 1.2rem;border-radius:6px;border:1px solid #555;background:transparent;color:#aaa;cursor:pointer">Abbrechen / Cancel</button>
+            <button id=_ok style="padding:.5rem 1.2rem;border-radius:6px;border:none;background:#f5a623;color:#000;font-weight:700;cursor:pointer">${confirmLabel}</button>
+          </div>
+        </div>`;
 
-        showPinDialog({
-          title: `👋 Hallo ${name}`,
-          sub:   'The app now requires a personal PIN. Create yours below — your existing bets and coins are safe.\n\nDie App wurde um eine PIN-Absicherung erweitert. Erstelle jetzt deine persönliche PIN – deine bisherigen Tipps bleiben erhalten.',
-          onSubmit: async pin => {
-            firstPin = pin;
-            // Zweite Abfrage: Bestätigung
-            return new Promise(r2 => {
-              showPinDialog({
-                title: '🔁 Confirm PIN',
-                sub:   'Enter your PIN again to confirm.\n\nGib deine PIN zur Bestätigung nochmal ein.',
-                onSubmit: async pinConfirm => {
-                  if (pinConfirm !== firstPin) {
-                    return false; // PINs don't match
-                  }
-                  await Pins.set(name, pinConfirm);
-                  Session.set(name);
-                  r2(true);
-                  resolve(true);
-                  return true;
-                },
-                onCancel: () => { r2(false); resolve(false); },
-              });
-              return true; // Schließe 1. Dialog
-            });
-          },
-          onCancel: () => resolve(false),
-        });
+      document.body.appendChild(ov);
+      const p1  = ov.querySelector('#_p1');
+      const p2  = ov.querySelector('#_p2');
+      const err = ov.querySelector('#_err');
+      const close = v => { document.body.removeChild(ov); resolve(v); };
 
-      } else {
-        /* Bekannter User → PIN prüfen */
-        showPinDialog({
-          title: `🔐 ${name}`,
-          sub:   'Enter your PIN to sign in.\n\nGib deine PIN ein, um dich anzumelden.',
-          onSubmit: async pin => {
-            const ok = await Pins.verify(name, pin);
-            if (ok) { Session.set(name); resolve(true); }
-            return ok;
-          },
-          onCancel: () => resolve(false),
-        });
-      }
+      ov.querySelector('#_cancel').onclick = () => close(null);
+      ov.querySelector('#_ok').onclick = () => {
+        const v = p1.value.trim();
+        if (v.length < 3) { err.textContent = 'Mindestens 3 Zeichen / Min. 3 characters'; return; }
+        if (withRepeat && p2 && p2.value.trim() !== v) {
+          err.textContent = 'PINs stimmen nicht überein / PINs do not match';
+          p2.value = ''; return;
+        }
+        close(v);
+      };
+      p1.addEventListener('keydown', e => {
+        if (e.key === 'Enter') withRepeat && p2 ? p2.focus() : ov.querySelector('#_ok').click();
+      });
+      p2?.addEventListener('keydown', e => { if (e.key === 'Enter') ov.querySelector('#_ok').click(); });
+      setTimeout(() => p1.focus(), 80);
     });
   }
 
-  /** Gibt den aktuell angemeldeten User zurück (oder null). */
-  function currentUser() {
-    return Session.currentUser();
-  }
+  /* ── loginAs – Kernlogik ── */
+  async function loginAs(name) {
+    // Bereits auf diesem Gerät eingeloggt?
+    const s = getSession();
+    if (s && s.name === name) return true;
 
-  /** Loggt den aktuellen User aus. */
-  function logout() {
-    Session.clear();
-  }
+    const hashPath = `${USERS_PATH}/${fbKey(name)}/pinHash`;
+    let storedHash = null;
 
-  /**
-   * Ersatz für die Admin-PIN-Prüfung der App.
-   * @param {string} pin  Die eingegebene PIN
-   * @param {string} correctHashedPin  SHA-256-Hash der richtigen Admin-PIN
-   *                                   (vorher mit sha256('admin:DEINE_PIN') erzeugen)
-   */
-  async function verifyAdminPin(pin, correctHashedPin) {
-    if (AdminLock.isLocked()) {
-      const mins = Math.ceil(AdminLock.remainingMs() / 60000);
-      throw new Error(`Admin gesperrt – noch ${mins} Minute(n). Zu viele Fehlversuche.`);
+    try {
+      storedHash = await fbRead(hashPath);
+    } catch {
+      _toast('Verbindungsfehler / Connection error', 'error');
+      return false;
     }
 
-    const hash = await sha256(`admin:${pin}`);
-    if (hash === correctHashedPin) {
-      AdminLock.reset();
-      return true;
+    if (storedHash) {
+      // ── PIN bereits gesetzt → abfragen ──
+      const pin = await pinDialog({
+        title       : '🔒 Anmelden / Sign in',
+        body        : `Hallo ${name}!\nBitte deinen PIN eingeben.\n\nHi ${name}!\nPlease enter your PIN.`,
+        confirmLabel: 'Anmelden / Sign in'
+      });
+      if (!pin) return false;
+
+      const hash = await sha256(`${name}:${pin}`);
+      if (hash !== storedHash) {
+        _toast('Falscher PIN / Wrong PIN', 'error');
+        return false;
+      }
+    } else {
+      // ── Noch kein PIN → neu setzen ──
+      const pin = await pinDialog({
+        title       : '🔑 PIN festlegen / Set PIN',
+        body        : `Hallo ${name}!\nSetze einen PIN für deinen Account.\nDu brauchst ihn bei jedem Login.\n\nHi ${name}!\nSet a PIN for your account.\nYou will need it on every login.`,
+        confirmLabel: 'PIN setzen / Set PIN',
+        withRepeat  : true
+      });
+      if (!pin) return false;
+
+      const hash = await sha256(`${name}:${pin}`);
+      try {
+        await fbWrite(hashPath, hash);
+      } catch {
+        _toast('PIN konnte nicht gespeichert werden / Could not save PIN', 'error');
+        return false;
+      }
     }
 
-    AdminLock.recordFail();
-    const s = AdminLock.get();
-    if (s.lockedUntil > Date.now()) {
-      throw new Error(`Admin gesperrt für ${CFG.ADMIN_LOCKOUT_MS / 60000} Minuten!`);
-    }
-    const remaining = CFG.ADMIN_MAX_TRIES - s.tries;
-    throw new Error(`Falsche PIN – noch ${remaining} Versuch(e).`);
+    saveSession(name);
+    return true;
   }
 
-  /** Hilfsfunktion: SHA-256-Hash einer Admin-PIN erzeugen (Einmalig beim Setup) */
-  async function generateAdminPinHash(pin) {
-    return sha256(`admin:${pin}`);
+  /* ── Admin: PIN eines Users zurücksetzen ── */
+  async function adminResetPin(name) {
+    await fbDelete(`${USERS_PATH}/${fbKey(name)}/pinHash`);
+  }
+
+  /* ── currentUser / logout ── */
+  function currentUser() { return getSession()?.name ?? null; }
+  function logout()      { localStorage.removeItem(SESSION); }
+
+  /* ── Admin-Lockout ── */
+  function _getLock() { try { return JSON.parse(localStorage.getItem(LOCK)); } catch { return null; } }
+  function adminIsLocked() {
+    const l = _getLock();
+    if (!l) return false;
+    if (Date.now() > l.until) { localStorage.removeItem(LOCK); return false; }
+    return true;
+  }
+  function adminLockRemainingMs() { return Math.max(0, (_getLock()?.until ?? 0) - Date.now()); }
+  function adminFailed() {
+    const l = _getLock() ?? { fails: 0, until: 0 };
+    l.fails++;
+    if (l.fails >= MAX_FAIL) l.until = Date.now() + LOCK_MS;
+    localStorage.setItem(LOCK, JSON.stringify(l));
+  }
+  function adminSucceeded() { localStorage.removeItem(LOCK); }
+
+  /* ── Admin-PIN Crypto ── */
+  async function verifyAdminPin(pin, hash) {
+    if (await sha256(pin) !== hash) throw new Error('Wrong PIN');
+  }
+  async function generateAdminPinHash(pin) { return sha256(pin); }
+
+  /* ── Interner Toast-Fallback ── */
+  function _toast(msg, type) {
+    typeof toast === 'function' ? toast(msg, type) : alert(msg);
   }
 
   return {
-    loginAs, currentUser, logout, verifyAdminPin, generateAdminPinHash,
-    // Admin-Lockout-Helfer (für das bestehende PIN-System in index.html)
-    adminFailed()         { AdminLock.recordFail(); },
-    adminSucceeded()      { AdminLock.reset(); },
-    adminIsLocked()       { return AdminLock.isLocked(); },
-    adminLockRemainingMs(){ return AdminLock.remainingMs(); },
+    loginAs, currentUser, logout,
+    adminResetPin,
+    adminFailed, adminSucceeded, adminIsLocked, adminLockRemainingMs,
+    verifyAdminPin, generateAdminPinHash
   };
 })();
-
-/* ══════════════════════════════════════════════════════════
-   INTEGRATION: Wie du die App anpasst
-   ══════════════════════════════════════════════════════════
-
-1. DIESES FILE einbinden (vor app.js oder am Ende von <body>):
-
-     <script src="shuffle-stakes-security.js"></script>
-
-2. NAME-KLICK abfangen — suche in deiner app.js die Stelle,
-   wo du nach Namensklick den User setzt, z.B.:
-
-     // VORHER:
-     player.onclick = () => { currentPlayer = name; showBettingView(); };
-
-     // NACHHER:
-     player.onclick = async () => {
-       const ok = await ShuffleAuth.loginAs(name);
-       if (ok) { currentPlayer = name; showBettingView(); }
-     };
-
-3. MANUAL-NAME-ENTRY auch absichern:
-     // nach Eingabe des manuellen Namens:
-     const ok = await ShuffleAuth.loginAs(enteredName);
-     if (ok) { ... }
-
-4. ADMIN-LOGIN ersetzen — suche deine Admin-PIN-Prüfung und ersetze:
-
-     // VORHER (unsicher – Klartext-Vergleich):
-     if (pin === '20190507') { enterAdminMode(); }
-
-     // NACHHER (sicher – Hash-Vergleich + Lockout):
-     // Schritt A: Einmalig deinen neuen Admin-PIN-Hash erzeugen:
-     //   console.log(await ShuffleAuth.generateAdminPinHash('DEINE_NEUE_PIN'));
-     //   → in Konsole copy/pasten und unten eintragen.
-     const ADMIN_HASH = 'HIER_DEN_GENERIERTEN_HASH_EINTRAGEN';
-     try {
-       await ShuffleAuth.verifyAdminPin(pin, ADMIN_HASH);
-       enterAdminMode();
-     } catch (e) {
-       alert(e.message);
-     }
-
-5. OSLO-PASSWORT (App-Zugangspasswort):
-   Das sollte NICHT mehr im Source-Code stehen.
-   Optionen:
-   a) Komplett entfernen (wenn der Turnier-Link ohnehin nur geteilt wird).
-   b) Durch einen serverseitigen Lookup ersetzen (braucht Backend).
-   c) Als ENV-Variable beim Build einfügen (GitHub Actions Secret).
-
-6. AKTUELLEN USER prüfen (optional, für Validierung):
-     // Bevor ein Tipp abgegeben wird, prüfen ob der richtige User eingeloggt ist:
-     if (ShuffleAuth.currentUser() !== betPlayerName) {
-       alert('Bitte zuerst als ' + betPlayerName + ' einloggen.');
-       return;
-     }
-
-══════════════════════════════════════════════════════════ */
