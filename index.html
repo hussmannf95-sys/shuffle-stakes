@@ -2202,7 +2202,6 @@ function pinKey(k){
         toast('Wrong PIN','error');
         _pin='';
       }
-    }
   } else if(_pin.length<8){_pin+=k;}
   const d=document.getElementById('pinDisplay');
   if(d) d.textContent=_pin?'●'.repeat(_pin.length):'––––';
