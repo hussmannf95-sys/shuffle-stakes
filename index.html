@@ -1,668 +1,2271 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>The Shuffle Cup 2026 – LIVE</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shuffle Stakes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#07091a;color:#e8eaf0;font-family:Barlow,sans-serif;min-height:100vh}
-button{cursor:pointer;font-family:Barlow,sans-serif}
-select{background:#0a0e1a;border:1px solid #1c2540;color:#c8d0e8;padding:5px 8px;border-radius:4px;width:100%;font-size:12px;outline:none}
-select option{background:#0e1325}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#07091a}::-webkit-scrollbar-thumb{background:#1c2540;border-radius:3px}
-.hdr{background:#080b1a;border-bottom:1px solid #1c2540;padding:0 16px}
-.hdr-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;padding:12px 0;gap:14px}
-.hdr-title{font-family:'Bebas Neue',serif;font-size:22px;letter-spacing:4px;color:#fff;line-height:1}
-.hdr-sub{font-size:11px;color:#7080a0;letter-spacing:1px;margin-top:2px}
-.tabs{background:#080b1a;border-bottom:1px solid #1c2540}
-.tabs-inner{max-width:900px;margin:0 auto;display:flex}
-.tab-btn{padding:10px 20px;border:none;background:transparent;color:#7080a0;font-family:'Bebas Neue',serif;font-size:15px;letter-spacing:2px;border-bottom:2px solid transparent;transition:all .2s}
-.tab-btn.active{color:#c9a227;border-bottom-color:#c9a227}
-.content{max-width:900px;margin:0 auto;padding:16px}
-.admin-btn{background:transparent;border:1px solid #1c2540;border-radius:6px;padding:6px 12px;color:#7080a0;font-size:12px;letter-spacing:1px}
-.scoreboard{background:linear-gradient(135deg,#7f0e1e 0%,#07091a 45%,#07091a 55%,#051d5a 100%);border:1px solid #1c2540;border-radius:12px;padding:24px 20px;margin-bottom:20px}
-.score-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;text-align:center}
-.score-label{font-family:'Bebas Neue',serif;font-size:15px;letter-spacing:3px;margin-bottom:4px}
-.score-num{font-family:'Bebas Neue',serif;font-size:72px;line-height:1}
-.progress-bar{margin:12px 0 0}
-.progress-labels{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;color:#7080a0;letter-spacing:1px}
-.progress-track{height:8px;border-radius:4px;background:#1a2040;overflow:hidden;display:flex}
-.match-card{background:#0e1325;border:1px solid #1c2540;border-radius:8px;padding:10px 14px;margin-bottom:8px}
-.match-meta{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.match-badge{background:#1c2540;color:#7080a0;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;letter-spacing:1px}
-.result-badge{border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;letter-spacing:1px;color:#fff}
-.match-players{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
-.match-vs{color:#7080a0;font-size:14px;letter-spacing:2px;font-weight:700}
-.round-hdr{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.round-title{font-family:'Bebas Neue',serif;color:#c9a227;font-size:18px;letter-spacing:2px}
-.standings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.standings-hdr{display:grid;grid-template-columns:22px 1fr 40px 40px 50px;gap:6px;padding:6px 10px;margin-bottom:4px;border-bottom:1px solid #1c2540}
-.standings-row{display:grid;grid-template-columns:22px 1fr 40px 40px 50px;gap:6px;align-items:center;padding:7px 10px;border-radius:6px;border-left:3px solid transparent}
-.standings-row.even{background:transparent}
-.standings-row.odd{background:#ffffff06}
-.day-tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.day-btn{padding:8px 16px;border-radius:6px;border:none;font-family:'Bebas Neue',serif;letter-spacing:2px;font-size:14px;background:transparent;color:#7080a0;transition:all .2s}
-.day-btn.active{background:#c9a227;color:#000}
-.locked-msg{text-align:center;padding:60px 20px;color:#7080a0;border:1px dashed #1c2540;border-radius:12px}
-.overlay{position:fixed;inset:0;background:#000c;z-index:1000;display:flex;align-items:center;justify-content:center}
-.overlay.hidden{display:none}
-.modal{background:#0e1325;border:2px solid #c9a227;border-radius:12px;padding:32px;min-width:300px;text-align:center}
-.admin-panel{position:fixed;inset:0;background:#000d;z-index:1000;overflow-y:auto}
-.admin-panel.hidden{display:none}
-.panel-inner{max-width:700px;margin:0 auto;padding:16px}
-.panel-box{background:#0e1325;border:1px solid #c9a227;border-radius:12px;padding:20px}
-.release-box{background:#0a0e20;border:1px solid #c9a22744;border-radius:8px;padding:12px 16px;margin-bottom:16px}
-.footer{border-top:1px solid #1c2540;margin-top:40px;padding:16px;text-align:center;color:#7080a0;font-size:11px;letter-spacing:1px}
-.live-indicator{color:#22c55e;font-size:10px}
-#winner-banner{display:none;text-align:center;margin-bottom:8px;color:#c9a227;font-family:'Bebas Neue',serif;font-size:20px;letter-spacing:3px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07091a;--bg2:#0c0f2a;--bg3:#131640;
+  --gold:#c9a227;--gold-dim:#b88d20;--gold-glow:rgba(201,162,39,0.25);
+  --red:#b91c2e;--red-dim:#7a1220;
+  --blue:#0a3180;--blue-light:#1a4db0;
+  --text:#f0ead8;--text-dim:#b0a888;--text-muted:#706888;
+  --border:rgba(201,162,39,0.15);--border-strong:rgba(201,162,39,0.35);
+  --card:rgba(12,15,42,0.9);
+  --success:#22c55e;--danger:#ef4444;
+  --radius:10px;
+}
+html,body{height:100%}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-size:14px}
+body.app-mode{overflow:hidden}
+
+/* noise grain */
+body::before{content:'';position:fixed;inset:0;opacity:.35;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E")}
+
+/* diagonal accent line top */
+body::after{content:'';position:fixed;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--red),var(--gold),transparent);z-index:200;pointer-events:none}
+
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;z-index:1}
+.screen.hidden{display:none!important}
+
+/* ─── LOGIN ─── */
+#loginWrap{
+  min-height:100vh;
+  background:radial-gradient(ellipse at 30% 40%,#0d1550 0%,#07091a 70%);
+  display:flex;flex-direction:column;align-items:center;
+  padding:2.5rem 1.5rem 2rem;gap:1.25rem;box-sizing:border-box}
+#loginWrap.hidden{display:none!important}
+.login-inner{display:flex;flex-direction:column;align-items:center;gap:1.25rem;width:100%}
+
+.logo-cup-svg{display:block;margin:0 auto .4rem}
+.logo-cup-name{font-family:'Bebas Neue',sans-serif;font-size:3.8rem;color:var(--gold);
+  letter-spacing:.12em;line-height:1;text-shadow:0 0 60px rgba(201,162,39,.5),0 0 120px rgba(201,162,39,.2)}
+.logo-stakes{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:700;
+  letter-spacing:.45em;text-transform:uppercase;color:var(--text-dim);margin-top:.15rem}
+.copyright{font-size:.72rem;color:rgba(232,224,200,0.55);text-align:center;letter-spacing:.06em;
+  text-transform:uppercase;margin-top:.5rem}
+
+.login-card{background:var(--card);border:1px solid var(--border-strong);border-radius:14px;
+  padding:1.75rem;width:100%;max-width:400px;
+  box-shadow:0 8px 40px rgba(0,0,0,.5),0 0 0 1px var(--border)}
+.login-card h2{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--text-dim);margin-bottom:1.25rem}
+
+.field{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim)}
+input[type=text],input[type=number],input[type=password]{
+  background:rgba(7,9,26,.7);border:1px solid var(--border-strong);border-radius:8px;
+  color:var(--text);font-family:'Barlow',sans-serif;font-size:16px;padding:.7rem 1rem;
+  width:100%;outline:none;transition:border-color .2s,box-shadow .2s;
+  -webkit-appearance:none;touch-action:manipulation}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow)}
+
+/* ─── PLAYER PICKER ─── */
+.picker-label{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.6rem}
+.picker-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;max-height:280px;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px}
+.picker-grid::-webkit-scrollbar{width:3px}
+.picker-grid::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:2px}
+.pname-btn{background:rgba(10,49,128,.15);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-size:.88rem;font-weight:600;padding:.55rem .5rem;text-align:center;
+  transition:all .15s;line-height:1.2;-webkit-tap-highlight-color:rgba(201,162,39,.2)}
+.pname-btn:active,.pname-btn:hover{background:rgba(201,162,39,.15);border-color:var(--gold);color:var(--gold)}
+.picker-loading{text-align:center;color:var(--text-muted);font-size:.82rem;padding:1.5rem 0}
+.picker-divider{display:flex;align-items:center;gap:.6rem;margin:.9rem 0}
+.picker-divider::before,.picker-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.picker-divider span{font-size:.62rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.guest-row{display:flex;gap:.4rem;align-items:stretch}
+.guest-input{flex:1;background:rgba(7,9,26,.7);border:1px solid var(--border-strong);border-radius:8px;
+  color:var(--text);font-family:'Barlow',sans-serif;font-size:16px;padding:.55rem .75rem;
+  outline:none;-webkit-appearance:none;touch-action:manipulation;transition:border-color .2s}
+.guest-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow)}
+.guest-btn{background:rgba(201,162,39,.12);border:1px solid var(--border-strong);border-radius:8px;
+  color:var(--gold);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-size:.8rem;font-weight:700;letter-spacing:.06em;padding:.55rem .85rem;
+  white-space:nowrap;transition:all .15s}
+.guest-btn:active{background:rgba(201,162,39,.25)}
+
+.btn{border:none;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-size:.95rem;font-weight:700;letter-spacing:.1em;padding:.75rem 1.5rem;
+  text-transform:uppercase;transition:all .15s;width:100%}
+.btn-gold{background:linear-gradient(135deg,#d4ad30,var(--gold));color:#07091a}
+.btn-gold:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-gold:active{transform:translateY(0)}
+.btn-red{background:var(--red);color:#fff}
+.btn-outline{background:transparent;border:1px solid var(--border-strong);color:var(--text-dim)}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{font-size:.75rem;padding:.35rem .65rem;width:auto}
+
+.login-note{font-size:.68rem;color:var(--text-muted);text-align:center;line-height:1.5}
+
+/* ─── APP HEADER ─── */
+.app-header{background:linear-gradient(180deg,rgba(12,15,42,1) 0%,rgba(12,15,42,0) 100%);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;
+  justify-content:space-between;padding:.65rem 1rem;flex-shrink:0;z-index:10;position:relative}
+.hdr-left{}
+.hdr-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold);letter-spacing:.08em}
+.hdr-user{font-size:.7rem;color:var(--text-dim);font-weight:500;
+  max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-coins{display:flex;align-items:center;gap:.35rem;
+  background:rgba(201,162,39,.08);border:1px solid var(--border-strong);
+  border-radius:20px;padding:.3rem .75rem}
+.coin-ico{font-size:.95rem}
+.coin-val{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;color:var(--gold);
+  letter-spacing:.04em;min-width:36px;text-align:right;transition:color .3s}
+.coin-val.animate{color:var(--success)}
+
+/* ─── TAB NAV ─── */
+.tab-nav{background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;flex-shrink:0;order:3;safe-area-inset-bottom:env(safe-area-inset-bottom)}
+.tab-btn{background:none;border:none;color:#7070a0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:.15rem;flex:1;
+  font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;
+  letter-spacing:.1em;padding:.55rem 0;text-transform:uppercase;transition:color .2s}
+.tab-btn .ti{font-size:1.15rem}
+.tab-btn.active{color:var(--gold)}
+
+/* ─── TAB CONTENT ─── */
+.tab-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:.65rem .75rem;order:2;overscroll-behavior:contain}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ─── MATCH CARDS ─── */
+.day-hdr{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;color:var(--gold);
+  letter-spacing:.1em;margin:.75rem 0 .4rem;
+  border-bottom:1px solid var(--border);padding-bottom:.25rem}
+.rnd-hdr{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;
+  letter-spacing:.22em;text-transform:uppercase;color:#8888aa;margin:.6rem 0 .3rem}
+
+.mc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:.45rem;overflow:hidden;transition:border-color .2s}
+.mc.open{border-color:rgba(201,162,39,.22)}
+.mc.settled{opacity:.65}
+
+.mc-head{display:flex;align-items:center;justify-content:space-between;
+  padding:.4rem .7rem;background:rgba(10,49,128,.08);border-bottom:1px solid var(--border)}
+.mc-badge{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;
+  letter-spacing:.15em;text-transform:uppercase;padding:.12rem .35rem;border-radius:3px}
+.b-sgl{background:rgba(10,49,128,.7);color:#b0ccff}
+.b-dbl{background:rgba(185,28,46,.35);color:#ffb0b8}
+.mc-id{font-size:.62rem;color:#8888aa;font-family:'Barlow Condensed',sans-serif;letter-spacing:.08em}
+.mc-status{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.mc-status.open{color:var(--success)}.mc-status.locked{color:#8888aa}.mc-status.settled{color:var(--gold)}
+
+.mc-body{padding:.55rem .7rem;display:flex;align-items:center;gap:.5rem}
+.ps{flex:1;min-width:0}
+.ps-name{font-size:.85rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.ps-name.tbd{color:#7070a0;font-:italic;font-weight:400}
+.ps-name.winner{color:var(--gold)}
+.ps-odds{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;color:var(--gold-dim);display:block}
+.mc-vs{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;font-weight:700;
+  color:#8888aa;text-align:center;flex-shrink:0;width:1.8rem}
+
+.mc-actions{padding:0 .7rem .55rem}
+.bet-bar{display:grid;grid-template-columns:1fr 1fr;gap:.35rem}
+.bet-side-btn{background:rgba(10,49,128,.2);border:1px solid rgba(201,162,39,.2);
+  border-radius:6px;color:#d0c8e8;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;
+  padding:.35rem .5rem;text-align:center;transition:all .15s;
+  letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bet-side-btn:hover{background:rgba(201,162,39,.15);border-color:var(--gold);color:var(--gold)}
+.my-bet-indicator{font-size:.6rem;color:var(--gold);font-family:'Barlow Condensed',sans-serif;
+  letter-spacing:.05em;padding:.15rem .5rem;text-align:center}
+
+/* ─── BET MODAL ─── */
+.modal-overlay{position:fixed;inset:0;background:rgba(7,9,26,.88);
+  backdrop-filter:blur(8px);z-index:100;
+  display:flex;align-items:flex-end;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--bg2);border:1px solid var(--border-strong);
+  border-radius:16px 16px 0 0;width:100%;max-width:480px;
+  padding:1.5rem;max-height:92vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--border-strong);
+  border-radius:2px;margin:0 auto 1.25rem}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;
+  color:var(--gold);letter-spacing:.1em;margin-bottom:.85rem}
+
+.bet-info{background:rgba(7,9,26,.5);border:1px solid var(--border);
+  border-radius:8px;padding:.65rem .75rem;margin-bottom:.85rem;font-size:.82rem}
+
+.sides-grid{display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:.4rem;margin-bottom:.85rem}
+.side-box{background:rgba(10,49,128,.18);border:1px solid var(--border);
+  border-radius:8px;padding:.6rem .5rem;cursor:pointer;transition:all .15s;text-align:center}
+.side-box.sel{border-color:var(--gold);background:rgba(201,162,39,.12)}
+.side-box .sn{font-size:.75rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:.2rem}
+.side-box .so{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold)}
+.side-box .se{font-size:.6rem;color:var(--text-muted)}
+.vs-sep{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--text-muted);text-align:center}
+
+.amt-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-dim);margin-bottom:.45rem}
+.amt-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.85rem}
+.amt-val{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);
+  min-width:52px;text-align:center}
+input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
+.fast-btns{display:flex;gap:.3rem;margin-top:.5rem}
+.fast-btn{background:rgba(201,162,39,.1);border:1px solid var(--border-strong);
+  border-radius:5px;color:var(--gold);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-size:.7rem;font-weight:700;padding:.2rem .45rem;flex:1;text-align:center}
+
+.payout-box{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);
+  border-radius:8px;padding:.55rem .75rem;display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:.85rem}
+.pay-label{font-size:.72rem;color:var(--text-dim)}
+.pay-val{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;color:var(--success)}
+
+.modal-actions{display:flex;gap:.5rem}
+
+/* ─── MY BETS ─── */
+.bet-item{background:var(--card);border:1px solid var(--border);
+  border-left:3px solid var(--border);border-radius:var(--radius);
+  padding:.65rem .75rem;margin-bottom:.45rem}
+.bet-item.won{border-left-color:var(--success)}
+.bet-item.lost{border-left-color:var(--danger);opacity:.7}
+.bet-item.pending{border-left-color:var(--gold-dim)}
+.bet-item.refunded{border-left-color:#888;opacity:.6}
+.bi-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
+.bi-match{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;
+  color:var(--text-muted);letter-spacing:.1em}
+.bi-tag{font-size:.6rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:.12rem .4rem;border-radius:3px}
+.t-won{background:rgba(34,197,94,.18);color:var(--success)}
+.t-lost{background:rgba(239,68,68,.18);color:var(--danger)}
+.t-pending{background:rgba(201,162,39,.12);color:var(--gold-dim)}
+.t-refund{background:rgba(128,128,128,.2);color:#aaa}
+.bi-body{display:flex;justify-content:space-between;align-items:center}
+.bi-on{font-weight:600;font-size:.85rem}
+.bi-amt{font-size:.78rem;color:var(--text-dim)}
+.rules-box{background:rgba(201,162,39,.06);border:1px solid var(--border);border-radius:10px;
+  padding:.9rem 1rem;margin:.75rem .75rem .25rem;font-size:.74rem;color:var(--text-dim);line-height:1.7}
+.rules-box h4{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.45rem}
+.rules-box ul{padding-left:1rem;margin:0}
+.rules-box li{margin-bottom:.1rem}
+.btn-cancel-bet{background:rgba(185,28,46,.12);border:1px solid rgba(185,28,46,.35);
+  border-radius:6px;color:var(--red);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
+  font-size:.7rem;font-weight:700;letter-spacing:.08em;padding:.2rem .55rem;
+  transition:all .15s;text-transform:uppercase}
+.btn-cancel-bet:active{background:rgba(185,28,46,.3)}
+
+/* ─── LEADERBOARD ─── */
+.lb-table{width:100%;border-collapse:collapse}
+.lb-table th{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;font-weight:700;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);
+  padding:.35rem .5rem;text-align:left;border-bottom:1px solid var(--border)}
+.lb-table td{padding:.55rem .5rem;border-bottom:1px solid rgba(201,162,39,.06);font-size:.88rem}
+.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:var(--text-muted);width:2.2rem}
+.lb-rank.r1{color:var(--gold)}.lb-rank.r2{color:#c0c8d8}.lb-rank.r3{color:#cd8432}
+.lb-name{font-weight:600}
+.lb-name.me{color:var(--gold)}
+.lb-coins{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;color:var(--gold);text-align:right}
+.lb-delta{font-size:.7rem;text-align:right;color:var(--text-muted)}
+.lb-delta.pos{color:var(--success)}.lb-delta.neg{color:var(--danger)}
+.lb-wins{font-size:.72rem;color:var(--text-muted);text-align:center}
+
+/* ─── ADMIN ─── */
+.pin-key{background:rgba(10,49,128,.25);border:1px solid var(--border-strong);border-radius:8px;
+  color:var(--text);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;
+  padding:.6rem;text-align:center;transition:all .1s;-webkit-tap-highlight-color:rgba(201,162,39,.3)}
+.pin-key:active{background:rgba(201,162,39,.25);border-color:var(--gold);transform:scale(.95)}
+.admin-pin-gate .icon{font-size:2.5rem}
+.admin-pin-gate h3{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold)}
+.admin-pin-gate .field{width:100%;max-width:240px}
+
+.admin-sec{background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.9rem;margin-bottom:.65rem}
+.admin-sec h3{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.65rem}
+.admin-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem}
+.admin-row select{flex:1;background:rgba(7,9,26,.7);border:1px solid var(--border-strong);
+  border-radius:7px;color:var(--text);font-family:'Barlow',sans-serif;
+  font-size:.82rem;padding:.45rem .6rem;outline:none}
+.stat-row{display:flex;gap:.75rem;flex-wrap:wrap}
+.stat-chip{background:rgba(201,162,39,.07);border:1px solid var(--border);
+  border-radius:6px;padding:.3rem .6rem;font-size:.72rem;color:var(--text-dim)}
+.stat-chip strong{color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:.9rem}
+
+/* ─── TOAST ─── */
+.toast-wrap{position:fixed;top:1rem;left:50%;transform:translateX(-50%);
+  z-index:500;display:flex;flex-direction:column;gap:.4rem;
+  pointer-events:none;width:92%;max-width:340px}
+.toast{background:var(--bg3);border:1px solid var(--border-strong);
+  border-radius:8px;padding:.65rem 1rem;font-size:.82rem;font-weight:500;
+  animation:tIn .25s ease-out,tOut .3s ease-in 2.4s forwards}
+.toast.success{border-color:rgba(34,197,94,.45);color:var(--success)}
+.toast.error{border-color:rgba(239,68,68,.45);color:var(--danger)}
+.toast.info{color:var(--gold)}
+@keyframes tIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tOut{from{opacity:1}to{opacity:0}}
+
+/* ─── EMPTY ─── */
+.empty{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+.empty .icon{font-size:2.2rem;margin-bottom:.4rem}
+.empty p{font-size:.85rem}
+/* ─── OUTRIGHT BETS ─── */
+.or-intro{background:rgba(201,162,39,.06);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem;font-size:.74rem;color:var(--text-dim);line-height:1.65}
+.or-intro h4{font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.35rem}
+.oq-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.55rem;overflow:hidden}
+.oq-card.oq-open{border-color:rgba(201,162,39,.18)}
+.oq-card.oq-settled{opacity:.75}
+.oq-head{display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;background:rgba(10,49,128,.08);border-bottom:1px solid var(--border)}
+.oq-num{font-family:'Bebas Neue',sans-serif;font-size:.88rem;color:var(--gold);letter-spacing:.08em}
+.oq-lock{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.oq-lock.open{color:var(--success)}.oq-lock.locked{color:#8888aa}.oq-lock.settled{color:var(--gold)}
+.oq-body{padding:.65rem .75rem}
+.oq-title{font-size:.88rem;font-weight:700;margin-bottom:.1rem}
+.oq-sub{font-size:.68rem;color:var(--text-muted);margin-bottom:.6rem;line-height:1.5}
+.oq-my-pick{background:rgba(201,162,39,.07);border:1px solid var(--border);border-radius:6px;padding:.35rem .6rem;font-size:.74rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+.oq-opts-2{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-bottom:.55rem}
+.oq-opts-multi{display:grid;grid-template-columns:1fr 1fr;gap:.25rem;margin-bottom:.55rem;max-height:210px;overflow-y:auto}
+.oq-opt{background:rgba(10,49,128,.15);border:1px solid var(--border);border-radius:7px;cursor:pointer;padding:.4rem .45rem;text-align:center;transition:all .15s;user-select:none}
+.oq-opt.sel{border-color:var(--gold);background:rgba(201,162,39,.12)}
+.oq-opt.win{border-color:var(--success);background:rgba(34,197,94,.08)}
+.oq-opt-name{font-size:.78rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.oq-opt.sel .oq-opt-name{color:var(--gold)}
+.oq-opt-odds{font-family:'Bebas Neue',sans-serif;font-size:.98rem;color:var(--gold-dim)}
+.oq-stake-row{display:flex;align-items:center;gap:.65rem;margin-bottom:.4rem}
+.oq-stake-val{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold);min-width:32px;text-align:center}
+.oq-payout{font-size:.7rem;color:var(--text-muted);margin-bottom:.55rem}
+.oq-payout strong{color:var(--success)}
+.oq-result-banner{background:rgba(201,162,39,.06);border-top:1px solid var(--border);padding:.45rem .75rem;display:flex;justify-content:space-between;align-items:center;font-size:.72rem}
+.oq-result-winner{font-weight:700;color:var(--gold)}
+/* ─── SCROLL ─── */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:2px}
 </style>
 </head>
 <body>
 
-<div class="hdr">
-  <div class="hdr-inner">
-    <div>
-      <div class="hdr-title">THE SHUFFLE CUP 2026</div>
-      <div class="hdr-sub">AMERICAS VS. EUROPE &nbsp;·&nbsp; TJ&Oslash;ME, NORWAY &nbsp;·&nbsp; JUNE 18&ndash;22, 2026</div>
-    </div>
-    <div style="flex:1"></div>
-    <div id="live-indicator" style="font-size:10px;color:#7080a0;display:none">
-      <span class="live-indicator">●</span> LIVE · <span id="update-time"></span>
-    </div>
-    <button class="admin-btn" onclick="openAdmin()">⚙ ADMIN</button>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="loginWrap">
+  <div class="login-inner">
+    <div class="logo-wrap" style="text-align:center">
+    <img src="data:image/jpeg;base64,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" alt="Shuffle Cup Logo" class="logo-cup-svg" style="width:100px;height:100px;object-fit:contain">
+    <div class="logo-cup-name">Shuffle Cup</div>
+    <div style="width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:.4rem auto"></div>
+    <div class="logo-stakes">Shuffle Stakes · Betting Arena</div>
   </div>
-</div>
-
-<div class="tabs">
-  <div class="tabs-inner">
-    <button class="tab-btn active" id="tab-live" onclick="showTab('live')">🏆 LIVE</button>
-    <button class="tab-btn" id="tab-schedule" onclick="showTab('schedule')">📋 SCHEDULE</button>
-    <button class="tab-btn" id="tab-standings" onclick="showTab('standings')">📊 STANDINGS</button>
+  <div class="login-card">
+    <h2>Who are you?</h2>
+    <div class="picker-label">Tap your name</div>
+    <div class="picker-grid" id="pickerGrid">
+      <div class="picker-loading">⏳ Loading players…</div>
+    </div>
+    <div class="picker-divider"><span>not listed · enter manually</span></div>
+    <button class="btn btn-outline" id="loginBtn" style="max-width:400px;width:100%">✏️ Enter name manually</button>
+    <p class="login-note" style="margin-top:.75rem">Same name = same account &nbsp;·&nbsp; 100 🪙 start</p>
   </div>
+    <div class="copyright">© 2026 hdhshuffle · all rights reserved</div>
+  </div><!-- /login-inner -->
+</div><!-- /loginWrap -->
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="appScreen" class="screen hidden">
+  <header class="app-header">
+    <div class="hdr-left">
+      <div class="hdr-title">Shuffle Stakes</div>
+      <div class="hdr-user" id="hdrUser"></div>
+    </div>
+    <div class="hdr-coins">
+      <span class="coin-ico">🪙</span>
+      <span class="coin-val" id="hdrCoins">100</span>
+    </div>
+  </header>
+
+  <div class="tab-content">
+    <div id="tabMatches" class="tab-panel active">
+      <div id="matchList"><div class="empty"><div class="icon">⏳</div><p>Loading matches…</p></div></div>
+    </div>
+    <div id="tabMyBets" class="tab-panel">
+      <div class="rules-box">
+        <h4>📋 Betting Rules</h4>
+        <ul>
+          <li>🪙 Start balance: <strong>100 Shuffle Coins</strong></li>
+          <li>🎯 Bet size: <strong>min 1 · max 10 coins</strong> per match</li>
+          <li>🚫 You cannot bet on your <strong>own loss</strong></li>
+          <li>1️⃣ <strong>One bet per match</strong> — no double betting</li>
+          <li>📛 <strong>Name = account</strong> — no password, choose carefully</li>
+          <li>📊 Odds based on <strong>ELO ratings</strong> — may shift before you bet</li>
+          <li>⭐ Starting ELO derived from <strong>WM placements 2023–2025</strong> (rank-normalized avg.) — stronger past results = higher ELO = lower odds</li>
+          <li style="color:var(--text-dim);font-style:italic">The initial ELO ratings are based on a limited data foundation. While they may not be fully accurate in every individual case, they provide a reliable starting point and will automatically improve as more match data becomes available throughout the tournament.</li>
+          <li>✏️ <strong>Cancel anytime</strong> before result is entered — coins returned</li>
+          <li>🔒 <strong>No changes</strong> once a result is settled</li>
+        </ul>
+      </div>
+      <div id="myBetsList"><div class="empty"><div class="icon">🎰</div><p>No bets yet.</p></div></div>
+    </div>
+    <div id="tabLeaderboard" class="tab-panel">
+      <div id="lbContent"><div class="empty"><div class="icon">🏆</div><p>Loading leaderboard…</p></div></div>
+      <details style="margin:.75rem .75rem 0;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+        <summary style="cursor:pointer;padding:.75rem 1rem;font-family:'Barlow Condensed',sans-serif;
+          font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+          color:var(--gold);background:rgba(201,162,39,.06);list-style:none;display:flex;
+          justify-content:space-between;align-items:center">
+          📊 ELO START VALUES — WM RANKING BASIS
+          <span style="font-size:.7rem;color:var(--text-muted);font-weight:400;letter-spacing:.05em">tap to expand ▾</span>
+        </summary>
+        <div style="padding:.75rem 1rem .5rem;overflow-x:auto">
+          <p style="font-size:.72rem;color:var(--text-dim);margin-bottom:.65rem;line-height:1.6">
+            Start ELO = <strong style="color:var(--gold)">1400 − (Ø Normalized / 0.766 × 200)</strong> · Range: 1200–1400 · K-Factor: 48.
+            Normalized rank = (placement − 1) / (field size − 1) per year.
+            Lower is better. <em>–</em> = did not compete that year.
+            Players without WM history start at <strong style="color:var(--gold)">ELO 1200</strong>.
+          </p>
+          <table style="width:100%;border-collapse:collapse;font-size:.75rem;min-width:420px">
+            <style>
+              .elo-tbl th{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;letter-spacing:.12em;
+                text-transform:uppercase;color:var(--text-muted);padding:.3rem .4rem;
+                border-bottom:1px solid var(--border);text-align:left}
+              .elo-tbl td{padding:.3rem .4rem;border-bottom:1px solid rgba(201,162,39,.06)}
+              .elo-tbl tr:last-child td{border-bottom:none}
+              .elo-tbl .nc{text-align:right;color:var(--text-dim);font-variant-numeric:tabular-nums}
+            </style>
+            <thead class="elo-tbl">
+              <tr>
+                <th>#</th><th>Name</th>
+                <th style="text-align:right">2023</th>
+                <th style="text-align:right">2024</th>
+                <th style="text-align:right">2025</th>
+                <th style="text-align:right">Ø Norm.</th>
+                <th style="text-align:right">ELO Start</th>
+              </tr>
+            </thead>
+            <tbody class="elo-tbl">
+          <tr>
+            <td style="color:var(--text-muted)">1</td>
+            <td><strong>Mark Malatt</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">0.000</td>
+            <td class="nc">0.000</td>
+            <td class="nc" style="color:var(--text)">0.000</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1400</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">2</td>
+            <td><strong>Torben Hußmann</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.032</td>
+            <td class="nc">–</td>
+            <td class="nc">0.016</td>
+            <td class="nc" style="color:var(--text)">0.024</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1394</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">3</td>
+            <td><strong>Kristin Gjelseth</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">0.029</td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc" style="color:var(--text)">0.029</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1393</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">4</td>
+            <td><strong>Franka Lengwenus</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">0.043</td>
+            <td class="nc" style="color:var(--text)">0.043</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1389</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">5</td>
+            <td><strong>Irene Hoffmanns</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">0.029</td>
+            <td class="nc">–</td>
+            <td class="nc">0.149</td>
+            <td class="nc" style="color:var(--text)">0.089</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1377</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">6</td>
+            <td><strong>Mats Graff-Wang</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.175</td>
+            <td class="nc">–</td>
+            <td class="nc">0.111</td>
+            <td class="nc" style="color:var(--text)">0.143</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1363</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">7</td>
+            <td><strong>Marius Runge</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.095</td>
+            <td class="nc">0.213</td>
+            <td class="nc">0.143</td>
+            <td class="nc" style="color:var(--text)">0.150</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1361</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">8</td>
+            <td><strong>Tyne Seybold</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">0.057</td>
+            <td class="nc">0.229</td>
+            <td class="nc">0.170</td>
+            <td class="nc" style="color:var(--text)">0.152</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1360</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">9</td>
+            <td><strong>Dave Berman</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">0.159</td>
+            <td class="nc" style="color:var(--text)">0.159</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1359</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">10</td>
+            <td><strong>Sebastian Runge</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.111</td>
+            <td class="nc">0.319</td>
+            <td class="nc">0.048</td>
+            <td class="nc" style="color:var(--text)">0.159</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1358</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">11</td>
+            <td><strong>Michael Hirsch</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.000</td>
+            <td class="nc">0.511</td>
+            <td class="nc">–</td>
+            <td class="nc" style="color:var(--text)">0.255</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1333</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">12</td>
+            <td><strong>Anna Balchunas</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">0.514</td>
+            <td class="nc">–</td>
+            <td class="nc">0.255</td>
+            <td class="nc" style="color:var(--text)">0.385</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1300</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">13</td>
+            <td><strong>Steffen Simon</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">0.397</td>
+            <td class="nc" style="color:var(--text)">0.397</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1296</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">14</td>
+            <td><strong>Jim Seesel</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">0.447</td>
+            <td class="nc">0.349</td>
+            <td class="nc" style="color:var(--text)">0.398</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1296</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">15</td>
+            <td><strong>Lauren Seesel</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">–</td>
+            <td class="nc">0.714</td>
+            <td class="nc">0.085</td>
+            <td class="nc" style="color:var(--text)">0.400</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1296</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">16</td>
+            <td><strong>Fabian Lengwenus</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">0.413</td>
+            <td class="nc" style="color:var(--text)">0.413</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1292</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">17</td>
+            <td><strong>Hallvard Flatland</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">0.444</td>
+            <td class="nc" style="color:var(--text)">0.444</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1284</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">18</td>
+            <td><strong>Luisa Schwark</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">0.543</td>
+            <td class="nc">0.343</td>
+            <td class="nc">0.489</td>
+            <td class="nc" style="color:var(--text)">0.458</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1280</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">19</td>
+            <td><strong>Dieter Hußmann</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.222</td>
+            <td class="nc">0.872</td>
+            <td class="nc">0.381</td>
+            <td class="nc" style="color:var(--text)">0.492</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1272</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">20</td>
+            <td><strong>Daniel Love</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">0.508</td>
+            <td class="nc" style="color:var(--text)">0.508</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1267</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">21</td>
+            <td><strong>Olav Hansson</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.206</td>
+            <td class="nc">–</td>
+            <td class="nc">0.825</td>
+            <td class="nc" style="color:var(--text)">0.516</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1265</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">22</td>
+            <td><strong>Drew Appelbaum</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">0.596</td>
+            <td class="nc">0.460</td>
+            <td class="nc" style="color:var(--text)">0.528</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1262</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">23</td>
+            <td><strong>Ruggy Joesten</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">0.957</td>
+            <td class="nc">0.190</td>
+            <td class="nc" style="color:var(--text)">0.574</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1250</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">24</td>
+            <td><strong>Teddy Wachholz</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">0.787</td>
+            <td class="nc">0.492</td>
+            <td class="nc" style="color:var(--text)">0.640</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1233</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">25</td>
+            <td><strong>Dieter Hoffmanns</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.794</td>
+            <td class="nc">–</td>
+            <td class="nc">0.571</td>
+            <td class="nc" style="color:var(--text)">0.683</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1222</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">26</td>
+            <td><strong>Alan Rosetti</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">0.571</td>
+            <td class="nc">0.979</td>
+            <td class="nc">0.524</td>
+            <td class="nc" style="color:var(--text)">0.691</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1219</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">27</td>
+            <td><strong>Sammy Wachholz</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">–</td>
+            <td class="nc">0.857</td>
+            <td class="nc">0.553</td>
+            <td class="nc" style="color:var(--text)">0.705</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1216</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">28</td>
+            <td><strong>Keri Gover</strong> <span style="font-size:.65rem;color:var(--text-muted)">♀</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">0.766</td>
+            <td class="nc" style="color:var(--text)">0.766</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1200</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">29</td>
+            <td><strong>Petter N. Berg</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc" style="color:var(--text)">0.766</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1200</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">30</td>
+            <td><strong>Jason Yudoff</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc" style="color:var(--text)">0.766</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1200</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-muted)">31</td>
+            <td><strong>Mark LaVertue</strong> <span style="font-size:.65rem;color:var(--text-muted)">♂</span></td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc">–</td>
+            <td class="nc" style="color:var(--text)">0.766</td>
+            <td style="color:var(--gold);font-weight:700;text-align:right">1200</td>
+          </tr>
+            </tbody>
+          </table>
+          <p style="font-size:.65rem;color:var(--text-muted);margin-top:.5rem;text-align:right">
+            Source: Shuffle Cup WM placements 2023–2025 · rank-normalized
+          </p>
+        </div>
+      </details>
+    </div>
+  <div id="tabOutright" class="tab-panel">
+  <div id="outrightList"><div class="empty"><div class="icon">🎯</div><p>Loading…</p></div></div>
+</div>
+    <div id="tabAdmin" class="tab-panel">
+      <div id="adminGate">
+        <div class="admin-pin-gate">
+          <div class="icon">🔐</div>
+          <h3>Admin Area</h3>
+          <div id="pinDisplay" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);letter-spacing:.4em;min-height:2.5rem;margin-bottom:.75rem">––––</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;max-width:220px;margin:0 auto">
+            <button class="pin-key" onclick="pinKey('1')">1</button>
+            <button class="pin-key" onclick="pinKey('2')">2</button>
+            <button class="pin-key" onclick="pinKey('3')">3</button>
+            <button class="pin-key" onclick="pinKey('4')">4</button>
+            <button class="pin-key" onclick="pinKey('5')">5</button>
+            <button class="pin-key" onclick="pinKey('6')">6</button>
+            <button class="pin-key" onclick="pinKey('7')">7</button>
+            <button class="pin-key" onclick="pinKey('8')">8</button>
+            <button class="pin-key" onclick="pinKey('9')">9</button>
+            <button class="pin-key pin-key-del" onclick="pinKey('DEL')" style="grid-column:1">⌫</button>
+            <button class="pin-key" onclick="pinKey('0')">0</button>
+            <button class="pin-key pin-key-ok" onclick="pinKey('OK')" style="background:var(--gold);color:#07091a">OK</button>
+          </div>
+        </div>
+      </div>
+      <div id="adminPanel" style="display:none"></div>
+    </div>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="tabMatches"><span class="ti">⚽</span>Matches</button>
+    <button class="tab-btn" data-tab="tabMyBets"><span class="ti">🎰</span>My Bets</button>
+    <button class="tab-btn" data-tab="tabLeaderboard"><span class="ti">🏆</span>Leaderboard</button>
+    <button class="tab-btn" data-tab="tabAdmin"><span class="ti">⚙️</span>Admin</button>
+    <button class="tab-btn" data-tab="tabOutright"><span class="ti">🎯</span>Outright</button>
+  </nav>
 </div>
 
-<div class="content">
-  <div id="view-live"></div>
-  <div id="view-schedule" style="display:none"></div>
-  <div id="view-standings" style="display:none"></div>
-</div>
-
-<div class="footer">© 2026 THE SHUFFLE CUP · Created by hdhshuffle · All results live · First to 55 points wins</div>
-
-<div class="overlay hidden" id="login-overlay">
+<!-- ═══════════ BET MODAL ═══════════ -->
+<div class="modal-overlay hidden" id="betModal">
   <div class="modal">
-    <div style="font-family:'Bebas Neue',serif;font-size:22px;color:#c9a227;letter-spacing:3px;margin-bottom:20px">ADMIN ACCESS</div>
-    <input type="email" id="email-input" placeholder="E-Mail"
-      style="width:100%;padding:10px 14px;border-radius:6px;background:#0a0e1a;border:1px solid #1c2540;color:#e8eaf0;font-size:14px;box-sizing:border-box;margin-bottom:8px;outline:none"/>
-    <input type="password" id="pw-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')tryLogin()"
-      style="width:100%;padding:10px 14px;border-radius:6px;background:#0a0e1a;border:1px solid #1c2540;color:#e8eaf0;font-size:14px;box-sizing:border-box;margin-bottom:12px;outline:none"/>
-    <div style="display:flex;gap:8px">
-      <button onclick="tryLogin()" style="flex:1;padding:10px;border-radius:6px;background:#c9a227;color:#000;border:none;font-family:'Bebas Neue',serif;letter-spacing:2px;font-size:14px">LOGIN</button>
-      <button onclick="closeAdmin()" style="flex:1;padding:10px;border-radius:6px;background:transparent;color:#7080a0;border:1px solid #1c2540;font-size:14px">Cancel</button>
+    <div class="modal-handle"></div>
+    <div class="modal-title">Place Bet</div>
+    <div class="bet-info" id="betInfo"></div>
+    <div class="sides-grid" id="sidesGrid"></div>
+    <div class="amt-label">Stake in Coins</div>
+    <div class="amt-row">
+      <span class="amt-val" id="amtVal">5</span>
+      <input type="range" id="amtSlider" min="1" max="10" value="5">
+    </div>
+    <div class="fast-btns">
+      <div class="fast-btn" onclick="setAmt(1)">1</div>
+      <div class="fast-btn" onclick="setAmt(3)">3</div>
+      <div class="fast-btn" onclick="setAmt(5)">5</div>
+      <div class="fast-btn" onclick="setAmt(8)">8</div>
+      <div class="fast-btn" onclick="setAmt(10)">MAX</div>
+    </div>
+    <div style="height:.85rem"></div>
+    <div class="payout-box">
+      <span class="pay-label">Potential Payout</span>
+      <span class="pay-val" id="payVal">+0</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="betCancelBtn" style="flex:1">Cancel</button>
+      <button class="btn btn-gold" id="betConfirmBtn" style="flex:2">Place Bet 🎰</button>
     </div>
   </div>
 </div>
 
-<div class="admin-panel hidden" id="admin-panel">
-  <div class="panel-inner">
-    <div class="panel-box">
-      <div style="display:flex;align-items:center;margin-bottom:16px">
-        <div style="font-family:'Bebas Neue',serif;font-size:20px;color:#c9a227;letter-spacing:3px;flex:1">⚙ ADMIN PANEL</div>
-        <button onclick="saveAndClose()" style="padding:8px 18px;border-radius:6px;background:#22c55e;color:#000;border:none;font-weight:700;margin-right:8px">💾 Save</button>
-        <button onclick="closeAdmin()" style="padding:8px 14px;border-radius:6px;background:transparent;color:#7080a0;border:1px solid #1c2540">✕</button>
-      </div>
-      <div class="release-box">
-        <div style="font-family:'Bebas Neue',serif;color:#c9a227;font-size:13px;letter-spacing:2px;margin-bottom:10px">🔓 RELEASE PAIRINGS FOR PLAYERS</div>
-        <div style="display:flex;gap:8px" id="release-btns"></div>
-        <div id="release-info" style="color:#7080a0;font-size:11px;margin-top:8px"></div>
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" id="admin-type-btns"></div>
-      <div id="admin-matches"></div>
-    </div>
-  </div>
-</div>
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// ═══════════════════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════════════════
-var FB_CONFIG = {
-  apiKey:            "AIzaSyDJB8jH_waUCydqHx7ptP7Z8Cs_r8rgweI",
-  authDomain:        "shufflecup2026.firebaseapp.com",
-  databaseURL:       "https://shufflecup2026-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:         "shufflecup2026",
-  storageBucket:     "shufflecup2026.firebasestorage.app",
-  messagingSenderId: "246377748256",
-  appId:             "1:246377748256:web:071b8fbe41a37d0831a945"
+'use strict';
+
+/* ════════════════════════════════
+   CONSTANTS
+════════════════════════════════ */
+const FB_CFG = {
+  apiKey:"AIzaSyDJB8jH_waUCydqHx7ptP7Z8Cs_r8rgweI",
+  authDomain:"shufflecup2026.firebaseapp.com",
+  databaseURL:"https://shufflecup2026-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"shufflecup2026",
+  storageBucket:"shufflecup2026.firebasestorage.app",
+  messagingSenderId:"246377748256",
+  appId:"1:246377748256:web:071b8fbe41a37d0831a945"
 };
 
-// ═══════════════════════════════════════════════════════
-// DATA  — v3 final (Teddy raus, Tyne als Reserve)
-// ═══════════════════════════════════════════════════════
-var AM = ['Michael Hirsch','Mark Malatt','Drew Applebaum','Ruggy Joesten','Sammy Wachholz','Alan Rosetti','Mark LaVertue','Keri Gover','Dave Berman','Anna Balchunas','Daniel Love','Lauren Seesel','Jim Seesel','Jason Yudoff','Tyne Seybold'];
-var EU = ['Torben Hußmann','Marius Runge','Sebastian Runge','Dieter Hußmann','Irene Hoffmanns','Franka Lengwenus','Fabian Lengwenus','Luisa Schwark','Dieter Hoffmanns','Steffen Simon','Mats Graff','Olav Hansson','Kristin Gjelseth','Hallvard Flatland','Petter N. Berg'];
+const PATH = {
+  pairings:'shufflecup2026/pairings',
+  results:'shufflecup2026/results',
+  relDays:'shufflecup2026/releasedDays',
+  users:'shufflecup2026_betting/users',
+  bets:'shufflecup2026_betting/bets',
+  elos:'shufflecup2026_betting/elos',
+  settled:'shufflecup2026_betting/settled',
+  cfg:'shufflecup2026_betting/config',
+};
 
-var SINGLES = [
-  // ── Day 1 · Round 1 ──
-  {id:'S_R1_M1', d:1,r:1,m:1, c:1,am:'Michael Hirsch',   eu:'Torben Hußmann'},
-  {id:'S_R1_M2', d:1,r:1,m:2, c:1,am:'Mark Malatt',      eu:'Marius Runge'},
-  {id:'S_R1_M3', d:1,r:1,m:3, c:2,am:'Drew Applebaum',   eu:'Sebastian Runge'},
-  {id:'S_R1_M4', d:1,r:1,m:4, c:2,am:'Ruggy Joesten',    eu:'Dieter Hußmann'},
-  {id:'S_R1_M5', d:1,r:1,m:5, c:3,am:'Sammy Wachholz',   eu:'Irene Hoffmanns'},
-  {id:'S_R1_M6', d:1,r:1,m:6, c:3,am:'Alan Rosetti',     eu:'Franka Lengwenus'},
-  {id:'S_R1_M7', d:1,r:1,m:7, c:4,am:'Mark LaVertue',    eu:'Fabian Lengwenus'},
-  {id:'S_R1_M8', d:1,r:1,m:8, c:4,am:'Jason Yudoff',     eu:'Luisa Schwark'},
-  {id:'S_R1_M9', d:1,r:1,m:9, c:5,am:'Keri Gover',       eu:'Dieter Hoffmanns'},
-  {id:'S_R1_M10',d:1,r:1,m:10,c:5,am:'Dave Berman',      eu:'Steffen Simon'},
-  {id:'S_R1_M11',d:1,r:1,m:11,c:6,am:'Anna Balchunas',   eu:'Mats Graff'},
-  {id:'S_R1_M12',d:1,r:1,m:12,c:6,am:'Daniel Love',      eu:'Olav Hansson'},
-  // ── Day 1 · Round 2 ──
-  {id:'S_R2_M1', d:1,r:2,m:1, c:2,am:'Michael Hirsch',   eu:'Sebastian Runge'},
-  {id:'S_R2_M2', d:1,r:2,m:2, c:2,am:'Mark Malatt',      eu:'Dieter Hußmann'},
-  {id:'S_R2_M3', d:1,r:2,m:3, c:3,am:'Drew Applebaum',   eu:'Irene Hoffmanns'},
-  {id:'S_R2_M4', d:1,r:2,m:4, c:3,am:'Ruggy Joesten',    eu:'Franka Lengwenus'},
-  {id:'S_R2_M5', d:1,r:2,m:5, c:4,am:'Sammy Wachholz',   eu:'Fabian Lengwenus'},
-  {id:'S_R2_M6', d:1,r:2,m:6, c:4,am:'Alan Rosetti',     eu:'Luisa Schwark'},
-  {id:'S_R2_M7', d:1,r:2,m:7, c:5,am:'Mark LaVertue',    eu:'Dieter Hoffmanns'},
-  {id:'S_R2_M8', d:1,r:2,m:8, c:5,am:'Daniel Love',      eu:'Kristin Gjelseth'},
-  {id:'S_R2_M9', d:1,r:2,m:9, c:6,am:'Keri Gover',       eu:'Hallvard Flatland'},
-  {id:'S_R2_M10',d:1,r:2,m:10,c:6,am:'Lauren Seesel',    eu:'Petter N. Berg'},
-  {id:'S_R2_M11',d:1,r:2,m:11,c:1,am:'Jim Seesel',       eu:'Torben Hußmann'},
-  {id:'S_R2_M12',d:1,r:2,m:12,c:1,am:'Jason Yudoff',     eu:'Marius Runge'},
-  // ── Day 2 · Round 3 ──
-  {id:'S_R3_M1', d:2,r:3,m:1, c:3,am:'Michael Hirsch',   eu:'Irene Hoffmanns'},
-  {id:'S_R3_M2', d:2,r:3,m:2, c:3,am:'Mark Malatt',      eu:'Franka Lengwenus'},
-  {id:'S_R3_M3', d:2,r:3,m:3, c:4,am:'Drew Applebaum',   eu:'Steffen Simon'},
-  {id:'S_R3_M4', d:2,r:3,m:4, c:4,am:'Ruggy Joesten',    eu:'Mats Graff'},
-  {id:'S_R3_M5', d:2,r:3,m:5, c:5,am:'Sammy Wachholz',   eu:'Olav Hansson'},
-  {id:'S_R3_M6', d:2,r:3,m:6, c:5,am:'Alan Rosetti',     eu:'Kristin Gjelseth'},
-  {id:'S_R3_M7', d:2,r:3,m:7, c:6,am:'Dave Berman',      eu:'Hallvard Flatland'},
-  {id:'S_R3_M8', d:2,r:3,m:8, c:6,am:'Anna Balchunas',   eu:'Petter N. Berg'},
-  {id:'S_R3_M9', d:2,r:3,m:9, c:1,am:'Daniel Love',      eu:'Torben Hußmann'},
-  {id:'S_R3_M10',d:2,r:3,m:10,c:1,am:'Lauren Seesel',    eu:'Marius Runge'},
-  {id:'S_R3_M11',d:2,r:3,m:11,c:2,am:'Jim Seesel',       eu:'Sebastian Runge'},
-  {id:'S_R3_M12',d:2,r:3,m:12,c:2,am:'Jason Yudoff',     eu:'Dieter Hußmann'},
-  // ── Day 2 · Round 4 ──
-  {id:'S_R4_M1', d:2,r:4,m:1, c:4,am:'Michael Hirsch',   eu:'Steffen Simon'},
-  {id:'S_R4_M2', d:2,r:4,m:2, c:4,am:'Mark Malatt',      eu:'Mats Graff'},
-  {id:'S_R4_M3', d:2,r:4,m:3, c:5,am:'Drew Applebaum',   eu:'Olav Hansson'},
-  {id:'S_R4_M4', d:2,r:4,m:4, c:5,am:'Mark LaVertue',    eu:'Kristin Gjelseth'},
-  {id:'S_R4_M5', d:2,r:4,m:5, c:6,am:'Sammy Wachholz',   eu:'Hallvard Flatland'},
-  {id:'S_R4_M6', d:2,r:4,m:6, c:6,am:'Keri Gover',       eu:'Petter N. Berg'},
-  {id:'S_R4_M7', d:2,r:4,m:7, c:1,am:'Dave Berman',      eu:'Torben Hußmann'},
-  {id:'S_R4_M8', d:2,r:4,m:8, c:1,am:'Anna Balchunas',   eu:'Marius Runge'},
-  {id:'S_R4_M9', d:2,r:4,m:9, c:2,am:'Daniel Love',      eu:'Sebastian Runge'},
-  {id:'S_R4_M10',d:2,r:4,m:10,c:2,am:'Lauren Seesel',    eu:'Fabian Lengwenus'},
-  {id:'S_R4_M11',d:2,r:4,m:11,c:3,am:'Jim Seesel',       eu:'Luisa Schwark'},
-  {id:'S_R4_M12',d:2,r:4,m:12,c:3,am:'Jason Yudoff',     eu:'Dieter Hoffmanns'},
-  // ── Day 3 · Round 5 ──
-  {id:'S_R5_M1', d:3,r:5,m:1, c:5,am:'Ruggy Joesten',    eu:'Olav Hansson'},
-  {id:'S_R5_M2', d:3,r:5,m:2, c:5,am:'Sammy Wachholz',   eu:'Kristin Gjelseth'},
-  {id:'S_R5_M3', d:3,r:5,m:3, c:6,am:'Alan Rosetti',     eu:'Hallvard Flatland'},
-  {id:'S_R5_M4', d:3,r:5,m:4, c:6,am:'Mark LaVertue',    eu:'Petter N. Berg'},
-  {id:'S_R5_M5', d:3,r:5,m:5, c:1,am:'Drew Applebaum',   eu:'Dieter Hußmann'},
-  {id:'S_R5_M6', d:3,r:5,m:6, c:1,am:'Keri Gover',       eu:'Irene Hoffmanns'},
-  {id:'S_R5_M7', d:3,r:5,m:7, c:2,am:'Dave Berman',      eu:'Franka Lengwenus'},
-  {id:'S_R5_M8', d:3,r:5,m:8, c:2,am:'Anna Balchunas',   eu:'Fabian Lengwenus'},
-  {id:'S_R5_M9', d:3,r:5,m:9, c:3,am:'Daniel Love',      eu:'Luisa Schwark'},
-  {id:'S_R5_M10',d:3,r:5,m:10,c:3,am:'Lauren Seesel',    eu:'Dieter Hoffmanns'},
-  {id:'S_R5_M11',d:3,r:5,m:11,c:4,am:'Jim Seesel',       eu:'Steffen Simon'},
-  {id:'S_R5_M12',d:3,r:5,m:12,c:4,am:'Jason Yudoff',     eu:'Mats Graff'},
-  // ── Day 3 · Round 6 ──
-  {id:'S_R6_M1', d:3,r:6,m:1, c:6,am:'Michael Hirsch',   eu:'Franka Lengwenus'},
-  {id:'S_R6_M2', d:3,r:6,m:2, c:6,am:'Mark Malatt',      eu:'Fabian Lengwenus'},
-  {id:'S_R6_M3', d:3,r:6,m:3, c:1,am:'Drew Applebaum',   eu:'Luisa Schwark'},
-  {id:'S_R6_M4', d:3,r:6,m:4, c:1,am:'Ruggy Joesten',    eu:'Dieter Hoffmanns'},
-  {id:'S_R6_M5', d:3,r:6,m:5, c:2,am:'Sammy Wachholz',   eu:'Steffen Simon'},
-  {id:'S_R6_M6', d:3,r:6,m:6, c:2,am:'Alan Rosetti',     eu:'Mats Graff'},
-  {id:'S_R6_M7', d:3,r:6,m:7, c:3,am:'Mark LaVertue',    eu:'Olav Hansson'},
-  {id:'S_R6_M8', d:3,r:6,m:8, c:3,am:'Lauren Seesel',    eu:'Torben Hußmann'},
-  {id:'S_R6_M9', d:3,r:6,m:9, c:4,am:'Keri Gover',       eu:'Marius Runge'},
-  {id:'S_R6_M10',d:3,r:6,m:10,c:4,am:'Dave Berman',      eu:'Sebastian Runge'},
-  {id:'S_R6_M11',d:3,r:6,m:11,c:5,am:'Anna Balchunas',   eu:'Dieter Hußmann'},
-  {id:'S_R6_M12',d:3,r:6,m:12,c:5,am:'Daniel Love',      eu:'Irene Hoffmanns'}
+const START = 100, MIN_BET = 1, MAX_BET = 10;
+const K = 48, DEF_ELO = 1300;
+
+// ELO Startwerte: Range 1200–1400, K=48
+// Formel: ELO = 1400 − (Ø Normalized / 0.766) × 200
+const INITIAL_ELOS = {
+  'Mark_Malatt':        1400,
+  'Torben_Hußmann':     1394,
+  'Kristin_Gjelseth':   1393,
+  'Franka_Lengwenus':   1389,
+  'Irene_Hoffmanns':    1377,
+  'Mats_Graff':         1363,
+  'Marius_Runge':       1361,
+  'Tyne_Seybold':       1360,
+  'Dave_Berman':        1359,
+  'Sebastian_Runge':    1358,
+  'Michael_Hirsch':     1333,
+  'Anna_Balchunas':     1300,
+  'Steffen_Simon':      1296,
+  'Jim_Seesel':         1296,
+  'Lauren_Seesel':      1296,
+  'Fabian_Lengwenus':   1292,
+  'Hallvard_Flatland':  1284,
+  'Luisa_Schwark':      1280,
+  'Dieter_Hußmann':     1272,
+  'Daniel_Love':        1267,
+  'Olav_Hansson':       1265,
+  'Drew_Applebaum':     1262,
+  'Ruggy_Joesten':      1250,
+  'Teddy_Wachholz':     1233,
+  'Dieter_Hoffmanns':   1222,
+  'Alan_Rosetti':       1219,
+  'Sammy_Wachholz':     1216,
+  'Keri_Gover':         1200,
+  'Petter_N__Berg':     1200,
+  'Jason_Yudoff':       1200,
+  'Mark_LaVertue':      1200,
+};
+const DEF_PIN = 'x9k2m';
+// Continent assignments
+const AMERICAS_PLAYERS = [
+  'Mark Malatt','Tyne Seybold','Dave Berman','Anna Balchunas',
+  'Jim Seesel','Lauren Seesel','Daniel Love','Drew Applebaum',
+  'Ruggy Joesten','Teddy Wachholz','Alan Rosetti','Sammy Wachholz',
+  'Keri Gover','Jason Yudoff','Mark LaVertue'
 ];
-
-var DOUBLES = [
-  // ── Day 1 · Round 1 ──
-  {id:'D_R1_M1',d:1,r:1,m:1,c:1,am:['Ruggy Joesten','Jason Yudoff'],      eu:['Fabian Lengwenus','Hallvard Flatland']},
-  {id:'D_R1_M2',d:1,r:1,m:2,c:2,am:['Sammy Wachholz','Jim Seesel'],       eu:['Marius Runge','Petter N. Berg']},
-  {id:'D_R1_M3',d:1,r:1,m:3,c:3,am:['Alan Rosetti','Lauren Seesel'],      eu:['Dieter Hußmann','Irene Hoffmanns']},
-  {id:'D_R1_M4',d:1,r:1,m:4,c:4,am:['Mark LaVertue','Daniel Love'],       eu:['Steffen Simon','Mats Graff']},
-  {id:'D_R1_M5',d:1,r:1,m:5,c:5,am:['Michael Hirsch','Anna Balchunas'],   eu:['Dieter Hoffmanns','Olav Hansson']},
-  {id:'D_R1_M6',d:1,r:1,m:6,c:6,am:['Keri Gover','Dave Berman'],          eu:['Torben Hußmann','Kristin Gjelseth']},
-  // ── Day 1 · Round 2 ──
-  {id:'D_R2_M1',d:1,r:2,m:1,c:2,am:['Michael Hirsch','Jim Seesel'],       eu:['Kristin Gjelseth','Mats Graff']},
-  {id:'D_R2_M2',d:1,r:2,m:2,c:3,am:['Jason Yudoff','Lauren Seesel'],      eu:['Torben Hußmann','Olav Hansson']},
-  {id:'D_R2_M3',d:1,r:2,m:3,c:4,am:['Mark Malatt','Daniel Love'],         eu:['Petter N. Berg','Dieter Hoffmanns']},
-  {id:'D_R2_M4',d:1,r:2,m:4,c:5,am:['Drew Applebaum','Anna Balchunas'],   eu:['Hallvard Flatland','Steffen Simon']},
-  {id:'D_R2_M5',d:1,r:2,m:5,c:6,am:['Mark LaVertue','Dave Berman'],       eu:['Marius Runge','Luisa Schwark']},
-  {id:'D_R2_M6',d:1,r:2,m:6,c:1,am:['Anna Balchunas','Keri Gover'],       eu:['Sebastian Runge','Fabian Lengwenus']},
-  // ── Day 2 · Round 3 ──
-  {id:'D_R3_M1',d:2,r:3,m:1,c:3,am:['Michael Hirsch','Lauren Seesel'],    eu:['Marius Runge','Hallvard Flatland']},
-  {id:'D_R3_M2',d:2,r:3,m:2,c:4,am:['Jim Seesel','Daniel Love'],          eu:['Dieter Hußmann','Olav Hansson']},
-  {id:'D_R3_M3',d:2,r:3,m:3,c:5,am:['Jason Yudoff','Anna Balchunas'],     eu:['Franka Lengwenus','Steffen Simon']},
-  {id:'D_R3_M4',d:2,r:3,m:4,c:6,am:['Mark Malatt','Dave Berman'],         eu:['Irene Hoffmanns','Mats Graff']},
-  {id:'D_R3_M5',d:2,r:3,m:5,c:1,am:['Drew Applebaum','Alan Rosetti'],     eu:['Torben Hußmann','Petter N. Berg']},
-  {id:'D_R3_M6',d:2,r:3,m:6,c:2,am:['Ruggy Joesten','Sammy Wachholz'],    eu:['Sebastian Runge','Kristin Gjelseth']},
-  // ── Day 2 · Round 4 ──
-  {id:'D_R4_M1',d:2,r:4,m:1,c:4,am:['Michael Hirsch','Keri Gover'],       eu:['Petter N. Berg','Dieter Hußmann']},
-  {id:'D_R4_M2',d:2,r:4,m:2,c:5,am:['Lauren Seesel','Alan Rosetti'],      eu:['Kristin Gjelseth','Franka Lengwenus']},
-  {id:'D_R4_M3',d:2,r:4,m:3,c:6,am:['Jim Seesel','Mark LaVertue'],        eu:['Hallvard Flatland','Irene Hoffmanns']},
-  {id:'D_R4_M4',d:2,r:4,m:4,c:1,am:['Jason Yudoff','Alan Rosetti'],       eu:['Marius Runge','Sebastian Runge']},
-  {id:'D_R4_M5',d:2,r:4,m:5,c:2,am:['Mark Malatt','Sammy Wachholz'],      eu:['Torben Hußmann','Luisa Schwark']},
-  {id:'D_R4_M6',d:2,r:4,m:6,c:3,am:['Drew Applebaum','Ruggy Joesten'],    eu:['Dieter Hoffmanns','Fabian Lengwenus']},
-  // ── Day 3 · Round 5 ──
-  {id:'D_R5_M1',d:3,r:5,m:1,c:5,am:['Michael Hirsch','Lauren Seesel'],    eu:['Dieter Hoffmanns','Steffen Simon']},
-  {id:'D_R5_M2',d:3,r:5,m:2,c:6,am:['Keri Gover','Mark LaVertue'],        eu:['Torben Hußmann','Dieter Hußmann']},
-  {id:'D_R5_M3',d:3,r:5,m:3,c:1,am:['Dave Berman','Alan Rosetti'],        eu:['Fabian Lengwenus','Olav Hansson']},
-  {id:'D_R5_M4',d:3,r:5,m:4,c:2,am:['Anna Balchunas','Sammy Wachholz'],   eu:['Luisa Schwark','Mats Graff']},
-  {id:'D_R5_M5',d:3,r:5,m:5,c:3,am:['Daniel Love','Ruggy Joesten'],       eu:['Franka Lengwenus','Marius Runge']},
-  {id:'D_R5_M6',d:3,r:5,m:6,c:4,am:['Mark Malatt','Drew Applebaum'],      eu:['Irene Hoffmanns','Sebastian Runge']},
-  // ── Day 3 · Round 6 ──
-  {id:'D_R6_M1',d:3,r:6,m:1,c:6,am:['Ruggy Joesten','Dave Berman'],       eu:['Dieter Hußmann','Petter N. Berg']},
-  {id:'D_R6_M2',d:3,r:6,m:2,c:1,am:['Anna Balchunas','Keri Gover'],       eu:['Franka Lengwenus','Kristin Gjelseth']},
-  {id:'D_R6_M3',d:3,r:6,m:3,c:2,am:['Daniel Love','Jason Yudoff'],        eu:['Irene Hoffmanns','Hallvard Flatland']},
-  {id:'D_R6_M4',d:3,r:6,m:4,c:3,am:['Lauren Seesel','Mark LaVertue'],     eu:['Luisa Schwark','Mats Graff']},
-  {id:'D_R6_M5',d:3,r:6,m:5,c:4,am:['Jim Seesel','Alan Rosetti'],         eu:['Dieter Hoffmanns','Steffen Simon']},
-  {id:'D_R6_M6',d:3,r:6,m:6,c:5,am:['Jason Yudoff','Sammy Wachholz'],     eu:['Fabian Lengwenus','Olav Hansson']}
+const EUROPE_PLAYERS = [
+  'Torben Hußmann','Kristin Gjelseth','Franka Lengwenus','Irene Hoffmanns',
+  'Mats Graff','Marius Runge','Sebastian Runge','Michael Hirsch',
+  'Steffen Simon','Fabian Lengwenus','Hallvard Flatland','Luisa Schwark',
+  'Dieter Hußmann','Olav Hansson','Petter N. Berg','Dieter Hoffmanns'
 ];
-
-// ═══════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════
-var state = {results:{}, pairings:{}, releasedDays:1};
-var adminLocal = null;
-var currentTab = 'live';
-var adminType = 'Singles';
-var adminDay = 1;
-var currentUser = null;
-var authReady = false;
-
-// ═══════════════════════════════════════════════════════
-// FIREBASE
-// ═══════════════════════════════════════════════════════
-if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-var db = firebase.database();
-
-db.ref('shufflecup2026').on('value', function(snap) {
-  var val = snap.val();
-  if(val){
-    state = val;
-    if(!state.results)  state.results  = {};
-    if(!state.pairings) state.pairings = {};
-    if(state.releasedDays == null) state.releasedDays = 1;
-  } else {
-    state = {results:{}, pairings:{}, releasedDays:1};
+const OUTRIGHT_QUESTIONS = [
+  {id:'q1_overall',  n:1, title:'Which continent wins the Shuffle Cup?', sub:'Overall champion · combined singles & doubles points', type:'continental'},
+  {id:'q2_singles',  n:2, title:'Which continent wins Singles?',         sub:'Continental champion in the singles discipline',      type:'continental'},
+  {id:'q3_doubles',  n:3, title:'Which continent wins Doubles?',         sub:'Continental champion in the doubles discipline',     type:'continental'},
+  {id:'q4_topscorer',n:4, title:'Who scores the most wins overall?',     sub:'Player with most combined singles + doubles wins',   type:'all_players'},
+  {id:'q5_am_sgl',   n:5, title:'Best Americas player in Singles',       sub:'Americas player with most singles wins',            type:'americas'},
+  {id:'q6_eu_sgl',   n:6, title:'Best Europe player in Singles',         sub:'Europe player with most singles wins',              type:'europe'},
+  {id:'q7_am_dbl',   n:7, title:'Best Americas player in Doubles',       sub:'Americas player with most doubles wins',            type:'americas'},
+  {id:'q8_eu_dbl',   n:8, title:'Best Europe player in Doubles',         sub:'Europe player with most doubles wins',              type:'europe'},
+];
+const NAME_TO_KEY = {
+  'Mark Malatt':'Mark_Malatt','Torben Hußmann':'Torben_Hußmann',
+  'Kristin Gjelseth':'Kristin_Gjelseth','Franka Lengwenus':'Franka_Lengwenus',
+  'Irene Hoffmanns':'Irene_Hoffmanns','Mats Graff':'Mats_Graff',
+  'Marius Runge':'Marius_Runge','Tyne Seybold':'Tyne_Seybold',
+  'Dave Berman':'Dave_Berman','Sebastian Runge':'Sebastian_Runge',
+  'Michael Hirsch':'Michael_Hirsch','Anna Balchunas':'Anna_Balchunas',
+  'Steffen Simon':'Steffen_Simon','Jim Seesel':'Jim_Seesel',
+  'Lauren Seesel':'Lauren_Seesel','Fabian Lengwenus':'Fabian_Lengwenus',
+  'Hallvard Flatland':'Hallvard_Flatland','Luisa Schwark':'Luisa_Schwark',
+  'Dieter Hußmann':'Dieter_Hußmann','Daniel Love':'Daniel_Love',
+  'Olav Hansson':'Olav_Hansson','Drew Applebaum':'Drew_Applebaum',
+  'Ruggy Joesten':'Ruggy_Joesten','Teddy Wachholz':'Teddy_Wachholz',
+  'Dieter Hoffmanns':'Dieter_Hoffmanns','Alan Rosetti':'Alan_Rosetti',
+  'Sammy Wachholz':'Sammy_Wachholz','Keri Gover':'Keri_Gover',
+  'Petter N. Berg':'Petter_N__Berg','Jason Yudoff':'Jason_Yudoff',
+  'Mark LaVertue':'Mark_LaVertue',
+};
+// Scaffold: 36 Singles + 36 Doubles across 6 rounds
+const SCAFFOLD = (() => {
+  const ids = [];
+  for(let r=1;r<=6;r++){
+    for(let m=1;m<=12;m++) ids.push(`S_R${r}_M${m}`);
+    for(let m=1;m<=6;m++) ids.push(`D_R${r}_M${m}`);
   }
-  render();
-  document.getElementById('update-time').textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('live-indicator').style.display = 'block';
-}, function(err){ console.error('Firebase read error:', err); });
+  return ids;
+})();
 
-firebase.auth().onAuthStateChanged(function(user) {
-  if(!user){
-    setTimeout(function(){
-      if(!firebase.auth().currentUser) firebase.auth().signInAnonymously().catch(console.error);
-    }, 2000);
+// All pairings from Shuffle Cup 2026
+const DAY1_PAIRINGS = {
+  // ── DAY 1 ──────────────────────────────
+  // Singles Round 1
+  S_R1_M1:{player1:'Michael Hirsch',player2:'Torben Hußmann'},
+  S_R1_M2:{player1:'Mark Malatt',player2:'Marius Runge'},
+  S_R1_M3:{player1:'Drew Applebaum',player2:'Sebastian Runge'},
+  S_R1_M4:{player1:'Ruggy Joesten',player2:'Dieter Hußmann'},
+  S_R1_M5:{player1:'Sammy Wachholz',player2:'Irene Hoffmanns'},
+  S_R1_M6:{player1:'Alan Rosetti',player2:'Franka Lengwenus'},
+  S_R1_M7:{player1:'Mark LaVertue',player2:'Fabian Lengwenus'},
+  S_R1_M8:{player1:'Teddy Wachholz',player2:'Luisa Schwark'},
+  S_R1_M9:{player1:'Keri Gover',player2:'Dieter Hoffmanns'},
+  S_R1_M10:{player1:'Dave Berman',player2:'Steffen Simon'},
+  S_R1_M11:{player1:'Anna Balchunas',player2:'Mats Graff'},
+  S_R1_M12:{player1:'Daniel Love',player2:'Olav Hansson'},
+  // Singles Round 2
+  S_R2_M1:{player1:'Michael Hirsch',player2:'Sebastian Runge'},
+  S_R2_M2:{player1:'Mark Malatt',player2:'Dieter Hußmann'},
+  S_R2_M3:{player1:'Drew Applebaum',player2:'Irene Hoffmanns'},
+  S_R2_M4:{player1:'Ruggy Joesten',player2:'Franka Lengwenus'},
+  S_R2_M5:{player1:'Sammy Wachholz',player2:'Fabian Lengwenus'},
+  S_R2_M6:{player1:'Alan Rosetti',player2:'Luisa Schwark'},
+  S_R2_M7:{player1:'Mark LaVertue',player2:'Dieter Hoffmanns'},
+  S_R2_M8:{player1:'Teddy Wachholz',player2:'Kristin Gjelseth'},
+  S_R2_M9:{player1:'Keri Gover',player2:'Hallvard Flatland'},
+  S_R2_M10:{player1:'Lauren Seesel',player2:'Petter N. Berg'},
+  S_R2_M11:{player1:'Jim Seesel',player2:'Torben Hußmann'},
+  S_R2_M12:{player1:'Jason Yudoff',player2:'Marius Runge'},
+  // Doubles Round 1
+  D_R1_M1:{player1:'Ruggy Joesten',player2:'Jason Yudoff',player3:'Fabian Lengwenus',player4:'Hallvard Flatland'},
+  D_R1_M2:{player1:'Sammy Wachholz',player2:'Jim Seesel',player3:'Franka Lengwenus',player4:'Petter N. Berg'},
+  D_R1_M3:{player1:'Alan Rosetti',player2:'Lauren Seesel',player3:'Dieter Hußmann',player4:'Irene Hoffmanns'},
+  D_R1_M4:{player1:'Mark LaVertue',player2:'Daniel Love',player3:'Steffen Simon',player4:'Mats Graff'},
+  D_R1_M5:{player1:'Teddy Wachholz',player2:'Anna Balchunas',player3:'Dieter Hoffmanns',player4:'Olav Hansson'},
+  D_R1_M6:{player1:'Keri Gover',player2:'Dave Berman',player3:'Luisa Schwark',player4:'Kristin Gjelseth'},
+  // Doubles Round 2
+  D_R2_M1:{player1:'Michael Hirsch',player2:'Jim Seesel',player3:'Kristin Gjelseth',player4:'Mats Graff'},
+  D_R2_M2:{player1:'Jason Yudoff',player2:'Lauren Seesel',player3:'Torben Hußmann',player4:'Olav Hansson'},
+  D_R2_M3:{player1:'Mark Malatt',player2:'Daniel Love',player3:'Petter N. Berg',player4:'Dieter Hoffmanns'},
+  D_R2_M4:{player1:'Drew Applebaum',player2:'Anna Balchunas',player3:'Hallvard Flatland',player4:'Steffen Simon'},
+  D_R2_M5:{player1:'Mark LaVertue',player2:'Dave Berman',player3:'Marius Runge',player4:'Luisa Schwark'},
+  D_R2_M6:{player1:'Teddy Wachholz',player2:'Keri Gover',player3:'Sebastian Runge',player4:'Fabian Lengwenus'},
+  // ── DAY 2 ──────────────────────────────
+  // Singles Round 3
+  S_R3_M1:{player1:'Michael Hirsch',player2:'Irene Hoffmanns'},
+  S_R3_M2:{player1:'Mark Malatt',player2:'Franka Lengwenus'},
+  S_R3_M3:{player1:'Drew Applebaum',player2:'Steffen Simon'},
+  S_R3_M4:{player1:'Ruggy Joesten',player2:'Mats Graff'},
+  S_R3_M5:{player1:'Sammy Wachholz',player2:'Olav Hansson'},
+  S_R3_M6:{player1:'Alan Rosetti',player2:'Kristin Gjelseth'},
+  S_R3_M7:{player1:'Dave Berman',player2:'Hallvard Flatland'},
+  S_R3_M8:{player1:'Anna Balchunas',player2:'Petter N. Berg'},
+  S_R3_M9:{player1:'Daniel Love',player2:'Torben Hußmann'},
+  S_R3_M10:{player1:'Lauren Seesel',player2:'Marius Runge'},
+  S_R3_M11:{player1:'Jim Seesel',player2:'Sebastian Runge'},
+  S_R3_M12:{player1:'Jason Yudoff',player2:'Dieter Hußmann'},
+  // Singles Round 4
+  S_R4_M1:{player1:'Michael Hirsch',player2:'Steffen Simon'},
+  S_R4_M2:{player1:'Mark Malatt',player2:'Mats Graff'},
+  S_R4_M3:{player1:'Drew Applebaum',player2:'Olav Hansson'},
+  S_R4_M4:{player1:'Mark LaVertue',player2:'Kristin Gjelseth'},
+  S_R4_M5:{player1:'Teddy Wachholz',player2:'Hallvard Flatland'},
+  S_R4_M6:{player1:'Keri Gover',player2:'Petter N. Berg'},
+  S_R4_M7:{player1:'Dave Berman',player2:'Torben Hußmann'},
+  S_R4_M8:{player1:'Anna Balchunas',player2:'Marius Runge'},
+  S_R4_M9:{player1:'Daniel Love',player2:'Sebastian Runge'},
+  S_R4_M10:{player1:'Lauren Seesel',player2:'Fabian Lengwenus'},
+  S_R4_M11:{player1:'Jim Seesel',player2:'Luisa Schwark'},
+  S_R4_M12:{player1:'Jason Yudoff',player2:'Dieter Hoffmanns'},
+  // Doubles Round 3
+  D_R3_M1:{player1:'Michael Hirsch',player2:'Lauren Seesel',player3:'Marius Runge',player4:'Hallvard Flatland'},
+  D_R3_M2:{player1:'Jim Seesel',player2:'Daniel Love',player3:'Dieter Hußmann',player4:'Olav Hansson'},
+  D_R3_M3:{player1:'Jason Yudoff',player2:'Anna Balchunas',player3:'Franka Lengwenus',player4:'Steffen Simon'},
+  D_R3_M4:{player1:'Mark Malatt',player2:'Dave Berman',player3:'Irene Hoffmanns',player4:'Mats Graff'},
+  D_R3_M5:{player1:'Drew Applebaum',player2:'Alan Rosetti',player3:'Torben Hußmann',player4:'Petter N. Berg'},
+  D_R3_M6:{player1:'Ruggy Joesten',player2:'Sammy Wachholz',player3:'Sebastian Runge',player4:'Kristin Gjelseth'},
+  // Doubles Round 4
+  D_R4_M1:{player1:'Michael Hirsch',player2:'Keri Gover',player3:'Petter N. Berg',player4:'Dieter Hußmann'},
+  D_R4_M2:{player1:'Lauren Seesel',player2:'Teddy Wachholz',player3:'Kristin Gjelseth',player4:'Franka Lengwenus'},
+  D_R4_M3:{player1:'Jim Seesel',player2:'Mark LaVertue',player3:'Hallvard Flatland',player4:'Irene Hoffmanns'},
+  D_R4_M4:{player1:'Jason Yudoff',player2:'Alan Rosetti',player3:'Marius Runge',player4:'Sebastian Runge'},
+  D_R4_M5:{player1:'Mark Malatt',player2:'Sammy Wachholz',player3:'Torben Hußmann',player4:'Luisa Schwark'},
+  D_R4_M6:{player1:'Drew Applebaum',player2:'Ruggy Joesten',player3:'Dieter Hoffmanns',player4:'Fabian Lengwenus'},
+  // ── DAY 3 ──────────────────────────────
+  // Singles Round 5
+  S_R5_M1:{player1:'Ruggy Joesten',player2:'Olav Hansson'},
+  S_R5_M2:{player1:'Sammy Wachholz',player2:'Kristin Gjelseth'},
+  S_R5_M3:{player1:'Alan Rosetti',player2:'Hallvard Flatland'},
+  S_R5_M4:{player1:'Mark LaVertue',player2:'Petter N. Berg'},
+  S_R5_M5:{player1:'Teddy Wachholz',player2:'Dieter Hußmann'},
+  S_R5_M6:{player1:'Keri Gover',player2:'Irene Hoffmanns'},
+  S_R5_M7:{player1:'Dave Berman',player2:'Franka Lengwenus'},
+  S_R5_M8:{player1:'Anna Balchunas',player2:'Fabian Lengwenus'},
+  S_R5_M9:{player1:'Daniel Love',player2:'Luisa Schwark'},
+  S_R5_M10:{player1:'Lauren Seesel',player2:'Dieter Hoffmanns'},
+  S_R5_M11:{player1:'Jim Seesel',player2:'Steffen Simon'},
+  S_R5_M12:{player1:'Jason Yudoff',player2:'Mats Graff'},
+  // Singles Round 6
+  S_R6_M1:{player1:'Michael Hirsch',player2:'Franka Lengwenus'},
+  S_R6_M2:{player1:'Mark Malatt',player2:'Fabian Lengwenus'},
+  S_R6_M3:{player1:'Drew Applebaum',player2:'Luisa Schwark'},
+  S_R6_M4:{player1:'Ruggy Joesten',player2:'Dieter Hoffmanns'},
+  S_R6_M5:{player1:'Sammy Wachholz',player2:'Steffen Simon'},
+  S_R6_M6:{player1:'Alan Rosetti',player2:'Mats Graff'},
+  S_R6_M7:{player1:'Mark LaVertue',player2:'Olav Hansson'},
+  S_R6_M8:{player1:'Teddy Wachholz',player2:'Torben Hußmann'},
+  S_R6_M9:{player1:'Keri Gover',player2:'Marius Runge'},
+  S_R6_M10:{player1:'Dave Berman',player2:'Sebastian Runge'},
+  S_R6_M11:{player1:'Anna Balchunas',player2:'Dieter Hußmann'},
+  S_R6_M12:{player1:'Daniel Love',player2:'Irene Hoffmanns'},
+  // Doubles Round 5
+  D_R5_M1:{player1:'Michael Hirsch',player2:'Teddy Wachholz',player3:'Dieter Hoffmanns',player4:'Steffen Simon'},
+  D_R5_M2:{player1:'Keri Gover',player2:'Mark LaVertue',player3:'Torben Hußmann',player4:'Dieter Hußmann'},
+  D_R5_M3:{player1:'Dave Berman',player2:'Alan Rosetti',player3:'Fabian Lengwenus',player4:'Olav Hansson'},
+  D_R5_M4:{player1:'Anna Balchunas',player2:'Sammy Wachholz',player3:'Luisa Schwark',player4:'Mats Graff'},
+  D_R5_M5:{player1:'Daniel Love',player2:'Ruggy Joesten',player3:'Franka Lengwenus',player4:'Marius Runge'},
+  D_R5_M6:{player1:'Mark Malatt',player2:'Drew Applebaum',player3:'Irene Hoffmanns',player4:'Sebastian Runge'},
+  // Doubles Round 6
+  D_R6_M1:{player1:'Ruggy Joesten',player2:'Dave Berman',player3:'Dieter Hußmann',player4:'Petter N. Berg'},
+  D_R6_M2:{player1:'Anna Balchunas',player2:'Keri Gover',player3:'Franka Lengwenus',player4:'Kristin Gjelseth'},
+  D_R6_M3:{player1:'Daniel Love',player2:'Teddy Wachholz',player3:'Irene Hoffmanns',player4:'Hallvard Flatland'},
+  D_R6_M4:{player1:'Lauren Seesel',player2:'Mark LaVertue',player3:'Luisa Schwark',player4:'Mats Graff'},
+  D_R6_M5:{player1:'Jim Seesel',player2:'Alan Rosetti',player3:'Dieter Hoffmanns',player4:'Steffen Simon'},
+  D_R6_M6:{player1:'Jason Yudoff',player2:'Sammy Wachholz',player3:'Fabian Lengwenus',player4:'Olav Hansson'},
+};
+
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+const S = {
+  user:null, coins:START,
+  pairings:{}, results:{}, elos:{},
+  myBets:{}, allUsers:{},
+  releasedDays:0, overrideDays:0,
+  adminOk:false, adminPin:DEF_PIN,
+  bm:{ matchId:null, side:null, o1:1.5, o2:1.5 },
+  myOrPicks:{}, orResults:{}, orSettled:{}, orLocked:false,
+};
+
+/* ════════════════════════════════
+   FIREBASE
+════════════════════════════════ */
+firebase.initializeApp(FB_CFG);
+const db = firebase.database();
+
+/* ════════════════════════════════
+   ELO & ODDS
+════════════════════════════════ */
+function getElo(name){
+  if(!name||name==='TBD') return DEF_ELO;
+  return S.elos[sk(name)]?.elo ?? DEF_ELO;
+}
+ function getPlayerEloVal(name){
+  const key=NAME_TO_KEY[name];
+  if(!key) return DEF_ELO;
+  return S.elos[key]?.elo ?? INITIAL_ELOS[key] ?? DEF_ELO;
+}
+function orOptionsForType(type){
+  if(type==='continental') return[
+    {key:'Americas',label:'Americas 🌎',odds:1.90},
+    {key:'Europe',  label:'Europe 🌍',  odds:2.05},
+  ];
+  let players=type==='all_players'?[...AMERICAS_PLAYERS,...EUROPE_PLAYERS]:type==='americas'?AMERICAS_PLAYERS:EUROPE_PLAYERS;
+  const withProb=players.map(n=>({key:n,label:n,elo:getPlayerEloVal(n)}));
+  const totalInv=withProb.reduce((s,p)=>s+1/p.elo,0);
+  return withProb
+.map(p=>({key:p.key,label:p.label,odds:parseFloat(Math.min(9.99,(1.5+(4.00-1.5)*((INITIAL_ELOS['Mark_Malatt']-p.elo)/(INITIAL_ELOS['Mark_Malatt']-1200)))).toFixed(2))}))
+    .sort((a,b)=>a.odds-b.odds);
+}
+const _orSel={}, _orAmt={}; 
+function wp(eloA,eloB){ return 1/(1+Math.pow(10,(eloB-eloA)/400)) }
+function odds(eloA,eloB){ const p=wp(eloA,eloB); return p<.02?50:parseFloat((1/p).toFixed(2)) }
+function teamElo(pairing,side){
+  if(!pairing) return DEF_ELO;
+  if(pairing.type==='singles') return getElo(pairing[side]);
+  const k1=side+'_p1', k2=side+'_p2';
+  return(getElo(pairing[k1])+getElo(pairing[k2]))/2;
+}
+
+/* ════════════════════════════════
+   DATA HELPERS
+════════════════════════════════ */
+function sk(n){ // sanitize key for Firebase
+  if(!n) return '_';
+  return String(n).replace(/[.#$\/\[\]\s]/g,'_').slice(0,64)||'_';
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function trunc(s,n=16){ return s&&s.length>n?s.slice(0,n-1)+'…':s||'' }
+
+function parseId(id){
+  const m=id.match(/^([SD])_R(\d+)_M(\d+)$/);
+  if(!m) return null;
+  return{type:m[1]==='S'?'singles':'doubles',round:+m[2],match:+m[3],day:Math.ceil(+m[2]/2)};
+}
+
+function parsePairing(matchId, raw){
+  if(!raw) return null;
+  const info=parseId(matchId);
+  if(!info) return null;
+  if(info.type==='singles'){
+    const p1=raw.player1||raw.p1||raw.home||null;
+    const p2=raw.player2||raw.p2||raw.away||null;
+    return{type:'singles',player1:p1,player2:p2};
   }
-  currentUser = user;
-  authReady = true;
-  if(user && !user.isAnonymous){
-    var overlay = document.getElementById('login-overlay');
-    if(!overlay.classList.contains('hidden')){
-      overlay.classList.add('hidden');
-      adminLocal = JSON.parse(JSON.stringify(state));
-      document.getElementById('admin-panel').classList.remove('hidden');
-      renderAdmin();
+  // Doubles — handle multiple storage formats
+  if(raw.player1&&raw.player3){
+    return{type:'doubles',
+      player1:`${raw.player1} / ${raw.player2||'?'}`,
+      player1_p1:raw.player1,player1_p2:raw.player2||'',
+      player2:`${raw.player3} / ${raw.player4||'?'}`,
+      player2_p1:raw.player3,player2_p2:raw.player4||''};
+  }
+  if(raw.team1||raw.team2){
+    const t1=raw.team1||{},t2=raw.team2||{};
+    const n1=typeof t1==='object'?`${t1.player1||''} / ${t1.player2||''}`:t1;
+    const n2=typeof t2==='object'?`${t2.player1||''} / ${t2.player2||''}`:t2;
+    return{type:'doubles',player1:n1,player1_p1:typeof t1==='object'?t1.player1:n1,player1_p2:typeof t1==='object'?t1.player2:'',
+      player2:n2,player2_p1:typeof t2==='object'?t2.player1:n2,player2_p2:typeof t2==='object'?t2.player2:''};
+  }
+  // fallback
+  return{type:'doubles',player1:raw.player1||raw.p1||null,player1_p1:raw.player1||'',player1_p2:'',
+    player2:raw.player2||raw.p2||null,player2_p1:raw.player2||'',player2_p2:''};
+}
+
+function getWinner(raw){
+  if(!raw) return null;
+  if(typeof raw==='string') return raw;
+  if(raw.winner) return raw.winner;
+  if(raw.score1!=null&&raw.score2!=null) return +raw.score1>+raw.score2?'player1':'player2';
+  return null;
+}
+
+function allIds(){
+  const set=new Set(SCAFFOLD);
+  Object.keys(S.pairings).forEach(id=>set.add(id));
+  return[...set].sort((a,b)=>{
+    const pa=parseId(a),pb=parseId(b);
+    if(!pa||!pb) return 0;
+    if(pa.day!==pb.day) return pa.day-pb.day;
+    if(pa.round!==pb.round) return pa.round-pb.round;
+    if(pa.type!==pb.type) return pa.type==='singles'?-1:1;
+    return pa.match-pb.match;
+  });
+}
+
+/* ════════════════════════════════
+   SETTLEMENT (one-shot via tx)
+════════════════════════════════ */
+  async function orPlaceBet(qid){
+  if(!S.user){toast('Please log in first','error');return;}
+  const pick=_orSel[qid];
+  if(!pick){toast('Select an option first','error');return;}
+  const q=OUTRIGHT_QUESTIONS.find(q=>q.id===qid);
+  if(!q) return;
+  const opts=orOptionsForType(q.type);
+  const pickOdds=opts.find(o=>o.key===pick)?.odds;
+  if(!pickOdds){toast('Option not found','error');return;}
+  const amount=_orAmt[qid]||5;
+  const existing=S.myOrPicks[qid];
+  const refund=(existing&&!existing.settled)?existing.amount:0;
+  const netCost=amount-refund;
+  if(S.coins<netCost){toast(`Not enough coins!`,'error');return;}
+  const userKey=sk(S.user);
+  let ok=false;
+  await db.ref(`${PATH.users}/${userKey}/coins`).transaction(c=>{
+    if((c||0)<netCost) return undefined;
+    ok=true; return(c||0)-netCost;
+  });
+  if(!ok){toast('Transaction failed','error');return;}
+  await db.ref(`shufflecup2026_betting/outright_picks/${userKey}/${qid}`).set({
+    pick,odds:pickOdds,amount,
+    placedAt:firebase.database.ServerValue.TIMESTAMP,
+    settled:false,won:null
+  });
+  toast(`Q${q.n} saved: ${trunc(pick,14)} @ ${pickOdds}x ✓`,'success');
+}
+async function settle(matchId, resultRaw){
+  const winner=getWinner(resultRaw);
+  if(!winner) return;
+  let claimed=false;
+  try{
+    await db.ref(`${PATH.settled}/${matchId}`).transaction(cur=>{
+      if(cur===null){claimed=true;return'done';}
+      return undefined; // abort
+    });
+  }catch(e){return;}
+  if(!claimed) return;
+
+  const snap=await db.ref(`${PATH.bets}/${matchId}`).once('value');
+  const bets=snap.val()||{};
+  const upd={};
+  const pay={}; // userName->coins to credit
+
+  for(const[bid,bet] of Object.entries(bets)){
+    if(bet.settled) continue;
+    const won=bet.side===winner;
+    upd[`${PATH.bets}/${matchId}/${bid}/settled`]=true;
+    upd[`${PATH.bets}/${matchId}/${bid}/won`]=won;
+    if(won) pay[bet.user]=(pay[bet.user]||0)+Math.round(bet.amount*bet.odds);
+  }
+  if(Object.keys(upd).length) await db.ref().update(upd);
+  for(const[u,amt] of Object.entries(pay)){
+    await db.ref(`${PATH.users}/${sk(u)}/coins`).transaction(c=>(c||0)+amt);
+  }
+  // Elo update
+  const pairing=parsePairing(matchId,S.pairings[matchId]);
+  if(pairing){
+    if(pairing.type==='singles'){
+      const wn=winner==='player1'?pairing.player1:pairing.player2;
+      const ln=winner==='player1'?pairing.player2:pairing.player1;
+      await eloSingles(wn,ln);
+    } else {
+      const wp_=winner==='player1'?[pairing.player1_p1,pairing.player1_p2]:[pairing.player2_p1,pairing.player2_p2];
+      const lp_=winner==='player1'?[pairing.player2_p1,pairing.player2_p2]:[pairing.player1_p1,pairing.player1_p2];
+      await eloDoubles(wp_,lp_);
     }
   }
-});
-
-// ═══════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════
-function fmtPts(v){ return v%1===0 ? String(v) : v.toFixed(1); }
-
-function getMatch(base, id){
-  var m = base.filter(function(x){return x.id===id;})[0];
-  if(!m) return null;
-  var ov = state.pairings[id];
-  if(!ov) return m;
-  return {id:m.id,d:m.d,r:m.r,m:m.m,c:m.c, am:ov.am||m.am, eu:ov.eu||m.eu};
 }
 
-function calcScores(){
-  var amT=0, euT=0, pp={};
-  AM.concat(EU).forEach(function(p){ pp[p]={s:0,d:0,total:0}; });
-  function add(players, pts, t){
-    (Array.isArray(players)?players:[players]).forEach(function(p){
-      if(pp[p]){ pp[p][t]+=pts; pp[p].total+=pts; }
-    });
+async function eloSingles(wName,lName){
+  if(!wName||!lName) return;
+  const wk=sk(wName),lk=sk(lName);
+  const[ws,ls]=await Promise.all([db.ref(`${PATH.elos}/${wk}`).once('value'),db.ref(`${PATH.elos}/${lk}`).once('value')]);
+  const we=ws.val()?.elo??DEF_ELO, le=ls.val()?.elo??DEF_ELO;
+  const p=wp(we,le);
+  await db.ref().update({
+    [`${PATH.elos}/${wk}/elo`]:Math.round(we+K*(1-p)),
+    [`${PATH.elos}/${wk}/wins`]:firebase.database.ServerValue.increment(1),
+    [`${PATH.elos}/${lk}/elo`]:Math.round(le-K*p),
+    [`${PATH.elos}/${lk}/losses`]:firebase.database.ServerValue.increment(1),
+  });
+}
+
+async function eloDoubles(winners,losers){
+  const upd={};
+  for(const n of winners){
+    if(!n) continue;
+    const key=sk(n);
+    const snap=await db.ref(`${PATH.elos}/${key}/elo`).once('value');
+    const e=snap.val()??DEF_ELO;
+    upd[`${PATH.elos}/${key}/elo`]=Math.round(e+K*0.5);
+    upd[`${PATH.elos}/${key}/wins`]=firebase.database.ServerValue.increment(1);
   }
-  SINGLES.forEach(function(m){
-    var res=state.results[m.id]; if(!res) return;
-    var am=(state.pairings[m.id]&&state.pairings[m.id].am)||m.am;
-    var eu=(state.pairings[m.id]&&state.pairings[m.id].eu)||m.eu;
-    if(res==='A'){amT+=1;add(am,1,'s');}else if(res==='E'){euT+=1;add(eu,1,'s');}else{amT+=.5;euT+=.5;add(am,.5,'s');add(eu,.5,'s');}
-  });
-  DOUBLES.forEach(function(m){
-    var res=state.results[m.id]; if(!res) return;
-    var am=(state.pairings[m.id]&&state.pairings[m.id].am)||m.am;
-    var eu=(state.pairings[m.id]&&state.pairings[m.id].eu)||m.eu;
-    if(res==='A'){amT+=1;add(am,1,'d');}else if(res==='E'){euT+=1;add(eu,1,'d');}else{amT+=.5;euT+=.5;add(am,.5,'d');add(eu,.5,'d');}
-  });
-  return {amT:amT, euT:euT, pp:pp};
-}
-
-function badge(res){
-  if(!res) return '<span style="color:#7080a0;font-size:11px">—</span>';
-  var cfg={A:{l:'AM',bg:'#b91c2e'},E:{l:'EU',bg:'#0a3180'},D:{l:'½',bg:'#f59e0b'}};
-  var c=cfg[res]||{l:res,bg:'#444'};
-  return '<span class="result-badge" style="background:'+c.bg+'">'+c.l+'</span>';
-}
-
-function matchCard(m, result, isD){
-  var amN = isD ? m.am.join(' / ') : m.am;
-  var euN = isD ? m.eu.join(' / ') : m.eu;
-  var amColor = result==='A'?'#e05060':'#e8eaf0';
-  var euColor = result==='E'?'#2a5ec0':'#e8eaf0';
-  var amW = result==='A'?'700':'400';
-  var euW = result==='E'?'700':'400';
-  return '<div class="match-card">'+
-    '<div class="match-meta">'+
-      '<span class="match-badge">'+(isD?'DBL':'SGL')+' · M'+m.m+' · Ct.'+m.c+'</span>'+
-      badge(result)+
-    '</div>'+
-    '<div class="match-players">'+
-      '<span style="color:'+amColor+';font-weight:'+amW+';font-size:13px;text-align:right">'+amN+'</span>'+
-      '<span class="match-vs">VS</span>'+
-      '<span style="color:'+euColor+';font-weight:'+euW+';font-size:13px">'+euN+'</span>'+
-    '</div>'+
-  '</div>';
-}
-
-// ═══════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════
-function render(){ renderLive(); renderSchedule(); renderStandings(); }
-
-function renderLive(){
-  var sc=calcScores();
-  var amT=sc.amT, euT=sc.euT;
-  var aP=Math.min(90,(amT/55)*100), eP=Math.min(90,(euT/55)*100);
-  var winner = amT>=55?'AMERICAS':euT>=55?'EUROPE':null;
-  var all=SINGLES.concat(DOUBLES);
-  var pending=all.filter(function(m){return !state.results[m.id];});
-  var curR=pending.length>0?Math.min.apply(null,pending.map(function(m){return m.r;})):6;
-  var cS=SINGLES.filter(function(m){return m.r===curR;});
-  var cD=DOUBLES.filter(function(m){return m.r===curR;});
-
-  var html='<div class="scoreboard">';
-  if(winner) html+='<div id="winner-banner" style="display:block">🏆 '+winner+' WINS THE SHUFFLE CUP!</div>';
-  html+='<div class="score-grid">'+
-    '<div>'+
-      '<div class="score-label" style="color:#e05060">AMERICAS</div>'+
-      '<div class="score-num" style="color:'+(amT>=55?'#c9a227':'#fff')+';text-shadow:0 0 30px #b91c2e88">'+fmtPts(amT)+'</div>'+
-    '</div>'+
-    '<div style="display:flex;flex-direction:column;align-items:center;gap:8px">'+
-      '<div style="color:#7080a0;font-size:10px;letter-spacing:2px;font-weight:700">VS</div>'+
-    '</div>'+
-    '<div>'+
-      '<div class="score-label" style="color:#2a5ec0">EUROPE</div>'+
-      '<div class="score-num" style="color:'+(euT>=55?'#c9a227':'#fff')+';text-shadow:0 0 30px #0a318088">'+fmtPts(euT)+'</div>'+
-    '</div>'+
-  '</div>'+
-  '<div class="progress-bar">'+
-    '<div class="progress-labels"><span>AMERICAS '+amT+'pts</span><span style="color:#c9a227">FIRST TO 55 WINS</span><span>EUROPE '+euT+'pts</span></div>'+
-    '<div class="progress-track">'+
-      '<div style="width:'+aP+'%;background:linear-gradient(90deg,#7f0e1e,#b91c2e);transition:width .6s"></div>'+
-      '<div style="flex:1"></div>'+
-      '<div style="width:'+eP+'%;background:linear-gradient(90deg,#0a3180,#2a5ec0);transition:width .6s"></div>'+
-    '</div>'+
-  '</div></div>';
-
-  var rdLive=state.releasedDays!=null?state.releasedDays:1;
-  if(rdLive===0){
-    html+='<div class="locked-msg"><div style="font-size:32px;margin-bottom:12px">🔒</div>'+
-      '<div style="font-family:\'Bebas Neue\',serif;font-size:20px;letter-spacing:3px;margin-bottom:8px">PAIRINGS NOT YET RELEASED</div>'+
-      '<div style="font-size:13px">The matchups will be announced by the organizers.</div></div>';
-  } else {
-    html+='<div style="font-family:\'Bebas Neue\',serif;font-size:14px;color:#7080a0;letter-spacing:2px;margin-bottom:12px">CURRENT ROUNDS</div>';
-    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
-    html+='<div><div style="font-family:\'Bebas Neue\',serif;font-size:16px;color:#c9a227;letter-spacing:2px;margin-bottom:8px">ROUND '+curR+' · SINGLES</div>';
-    cS.forEach(function(m){ html+=matchCard(getMatch(SINGLES,m.id),state.results[m.id],false); });
-    html+='</div><div><div style="font-family:\'Bebas Neue\',serif;font-size:16px;color:#c9a227;letter-spacing:2px;margin-bottom:8px">ROUND '+curR+' · DOUBLES</div>';
-    cD.forEach(function(m){ html+=matchCard(getMatch(DOUBLES,m.id),state.results[m.id],true); });
-    html+='</div></div>';
+  for(const n of losers){
+    if(!n) continue;
+    const key=sk(n);
+    const snap=await db.ref(`${PATH.elos}/${key}/elo`).once('value');
+    const e=snap.val()??DEF_ELO;
+    upd[`${PATH.elos}/${key}/elo`]=Math.round(e-K*0.5);
+    upd[`${PATH.elos}/${key}/losses`]=firebase.database.ServerValue.increment(1);
   }
-  document.getElementById('view-live').innerHTML=html;
+  if(Object.keys(upd).length) await db.ref().update(upd);
 }
 
-var schedDay=1, schedType='Singles';
-function renderSchedule(){
-  var rd=state.releasedDays!=null?state.releasedDays:1;
-  var released=schedDay<=rd;
-  var base=schedType==='Singles'?SINGLES:DOUBLES;
-  var matches=base.filter(function(m){return m.d===schedDay;});
-  var roundNums=[]; matches.forEach(function(m){if(roundNums.indexOf(m.r)<0)roundNums.push(m.r);});
-
-  var html='<div class="day-tabs">';
-  [1,2,3].forEach(function(d){
-    html+='<button class="day-btn'+(schedDay===d?' active':'')+'" onclick="setSchedDay('+d+')">'+'DAY '+d+(d>rd?' 🔒':'')+'</button>';
-  });
-  html+='<div style="flex:1"></div>';
-  ['Singles','Doubles'].forEach(function(t){
-    html+='<button class="day-btn'+(schedType===t?' active':'')+'" onclick="setSchedType(\''+t+'\')">'+t+'</button>';
-  });
-  html+='</div>';
-
-  if(!released){
-    html+='<div class="locked-msg"><div style="font-size:32px;margin-bottom:12px">🔒</div>'+
-      '<div style="font-family:\'Bebas Neue\',serif;font-size:20px;letter-spacing:3px;margin-bottom:8px">PAIRINGS NOT YET RELEASED</div>'+
-      '<div style="font-size:13px">The matchups for Day '+schedDay+' will be announced by the organizers.</div></div>';
-  } else {
-    roundNums.forEach(function(rn){
-      var rm=matches.filter(function(m){return m.r===rn;});
-      var done=rm.filter(function(m){return state.results[m.id];}).length;
-      html+='<div style="margin-bottom:20px">'+
-        '<div class="round-hdr">'+
-          '<div class="round-title">ROUND '+rn+'</div>'+
-          '<div style="color:#7080a0;font-size:11px">'+done+'/'+rm.length+' completed</div>'+
-          (done===rm.length&&done>0?'<span style="color:#22c55e;font-size:11px">✓ DONE</span>':'')+
-        '</div>';
-      rm.forEach(function(m){ html+=matchCard(getMatch(base,m.id),state.results[m.id],schedType==='Doubles'); });
-      html+='</div>';
-    });
+/* ════════════════════════════════
+   RENDER: MATCHES
+════════════════════════════════ */
+  function renderOutright(){
+  const el=document.getElementById('outrightList');
+  if(!el) return;
+  let html=`<div class="or-intro"><h4>🎯 Outright Bets — 8 tournament-wide questions</h4>
+    Pick an outcome, set your stake (1–10 coins). Settled automatically when admin enters result.</div>`;
+  for(const q of OUTRIGHT_QUESTIONS){
+    const opts=orOptionsForType(q.type);
+    const myPick=S.myOrPicks[q.id];
+    const result=S.orResults[q.id];
+    const settled=!!S.orSettled[q.id];
+    const locked=S.orLocked||settled;
+    if(!_orSel[q.id]&&myPick?.pick) _orSel[q.id]=myPick.pick;
+    if(!_orAmt[q.id]) _orAmt[q.id]=myPick?.amount||5;
+    const selKey=_orSel[q.id];
+    const amt=_orAmt[q.id];
+    const selOdds=opts.find(o=>o.key===selKey)?.odds||null;
+    const payout=selOdds?Math.round(amt*selOdds):0;
+    const lockTxt=settled?'✓ Settled':locked?'🔒 Locked':'● Open';
+    const lockCls=settled?'settled':locked?'locked':'open';
+    const cardCls=settled?'oq-settled':locked?'':'oq-open';
+    const gridCls=q.type!=='continental'?'oq-opts-multi':'oq-opts-2';
+    let optsHtml='';
+    for(const opt of opts){
+      const isWin=settled&&result===opt.key;
+      const isSel=selKey===opt.key;
+      const cls=isWin?'oq-opt win':isSel?'oq-opt sel':'oq-opt';
+      const short=opt.label.length>18?opt.label.slice(0,17)+'…':opt.label;
+      optsHtml+=`<div class="${cls}" onclick="orSelect('${q.id}','${opt.key.replace(/'/g,"\\'")}')">
+        <div class="oq-opt-name">${esc(short)}</div>
+        <div class="oq-opt-odds">${opt.odds}x</div></div>`;
+    }
+    let myPickHtml='';
+    if(myPick?.pick){
+      const pLabel=opts.find(o=>o.key===myPick.pick)?.label||myPick.pick;
+      const pot=Math.round(myPick.amount*myPick.odds);
+      if(settled){
+        const won=myPick.pick===result;
+        myPickHtml=`<div class="oq-my-pick"><span>📌 ${esc(trunc(pLabel,20))}</span>${won?`<span style="color:var(--success);font-weight:700">+${pot}🪙 WON 🎉</span>`:`<span style="color:var(--danger)">Lost ${myPick.amount}🪙</span>`}</div>`;
+      } else {
+        myPickHtml=`<div class="oq-my-pick"><span>📌 ${esc(trunc(pLabel,20))}</span><span style="color:var(--text-muted);font-size:.68rem">${myPick.amount}🪙 · pot. ${pot}🪙</span></div>`;
+      }
+    }
+    let controlsHtml='';
+    if(!settled){
+      if(!locked){
+        const payTxt=selKey&&selOdds?`Potential payout: <strong>${payout}🪙</strong> (+${payout-amt})`:`<span style="color:var(--text-muted);font-style:italic">Select an option above</span>`;
+        controlsHtml=`<div class="oq-stake-row">
+          <span class="oq-stake-val" id="or-amt-${q.id}">${amt}</span>
+          <input type="range" min="1" max="10" value="${amt}" style="flex:1;accent-color:var(--gold);height:4px" onchange="orRange('${q.id}',this.value)" oninput="orRange('${q.id}',this.value)">
+        </div>
+        <div class="oq-payout" id="or-pay-${q.id}">${payTxt}</div>
+        <button class="btn btn-gold" style="width:100%" onclick="orPlaceBet('${q.id}')">${myPick?'🔄 Update Pick':'📌 Lock Pick'} · ${amt}🪙</button>`;
+      } else {
+        controlsHtml=`<p style="font-size:.7rem;color:var(--text-muted);text-align:center;padding:.2rem 0">🔒 Betting is locked</p>`;
+      }
+    }
+    const resultHtml=settled&&result?`<div class="oq-result-banner"><span>Result:</span><span class="oq-result-winner">🏆 ${esc(result)}</span></div>`:'';
+    html+=`<div class="oq-card ${cardCls}">
+      <div class="oq-head"><span class="oq-num">🎯 Q${q.n}</span><span class="oq-lock ${lockCls}">${lockTxt}</span></div>
+      <div class="oq-body">
+        <div class="oq-title">${esc(q.title)}</div>
+        <div class="oq-sub">${esc(q.sub)}</div>
+        ${myPickHtml}
+        <div class="${gridCls}">${optsHtml}</div>
+        ${controlsHtml}
+      </div>${resultHtml}</div>`;
   }
-  document.getElementById('view-schedule').innerHTML=html;
+  el.innerHTML=html;
 }
-function setSchedDay(d){ schedDay=d; renderSchedule(); }
-function setSchedType(t){ schedType=t; renderSchedule(); }
-
-function renderStandings(){
-  var sc=calcScores();
-  var pp=sc.pp;
-  var sA=AM.slice().sort(function(a,b){return (pp[b]?pp[b].total:0)-(pp[a]?pp[a].total:0);});
-  var sE=EU.slice().sort(function(a,b){return (pp[b]?pp[b].total:0)-(pp[a]?pp[a].total:0);});
-  function col(players, clr){
-    var h='<div class="standings-hdr">'+
-      '<span></span>'+
-      '<span style="font-family:\'Bebas Neue\',serif;font-size:14px;letter-spacing:2px;color:'+clr+'">'+(clr==='#e05060'?'AMERICAS':'EUROPE')+'</span>'+
-      '<span style="text-align:center;font-size:10px;color:#7080a0;letter-spacing:1px">SGL</span>'+
-      '<span style="text-align:center;font-size:10px;color:#7080a0;letter-spacing:1px">DBL</span>'+
-      '<span style="text-align:center;font-size:10px;color:#7080a0;letter-spacing:1px">TOTAL</span></div>';
-    players.forEach(function(p,i){
-      var pts=pp[p]||{s:0,d:0,total:0};
-      h+='<div class="standings-row '+(i%2===0?'even':'odd')+'" style="border-left-color:'+(pts.total>0?clr:'transparent')+'">'+
-        '<span style="color:#7080a0;font-size:11px;text-align:center">'+(i+1)+'</span>'+
-        '<span style="font-size:13px;color:'+(pts.total>0?'#e8eaf0':'#7080a0')+'">'+p+'</span>'+
-        '<span style="text-align:center;font-size:12px;color:#7080a0">'+(pts.s||0)+'</span>'+
-        '<span style="text-align:center;font-size:12px;color:#7080a0">'+(pts.d||0)+'</span>'+
-        '<span style="text-align:center;font-size:14px;font-weight:700;color:'+(pts.total>0?clr:'#7080a0')+'">'+fmtPts(pts.total)+'</span>'+
-      '</div>';
-    });
-    return h;
+function orSelect(qid,key){
+  if(S.orLocked||S.orSettled[qid]) return;
+  _orSel[qid]=key;
+  renderOutright();
+}
+function orRange(qid,val){
+  _orAmt[qid]=parseInt(val);
+  const amtEl=document.getElementById(`or-amt-${qid}`);
+  if(amtEl) amtEl.textContent=val;
+  const q=OUTRIGHT_QUESTIONS.find(q=>q.id===qid);
+  const sel=_orSel[qid];
+  if(sel&&q){
+    const o=orOptionsForType(q.type).find(x=>x.key===sel)?.odds;
+    const payEl=document.getElementById(`or-pay-${qid}`);
+    if(o&&payEl) payEl.innerHTML=`Potential payout: <strong>${Math.round(parseInt(val)*o)}🪙</strong> (+${Math.round(parseInt(val)*o)-parseInt(val)})`;
   }
-  document.getElementById('view-standings').innerHTML=
-    '<div class="standings-grid"><div>'+col(sA,'#e05060')+'</div><div>'+col(sE,'#2a5ec0')+'</div></div>';
 }
-
-// ═══════════════════════════════════════════════════════
-// TAB SWITCHING
-// ═══════════════════════════════════════════════════════
-function showTab(t){
-  currentTab=t;
-  ['live','schedule','standings'].forEach(function(id){
-    document.getElementById('view-'+id).style.display = id===t?'block':'none';
-    document.getElementById('tab-'+id).classList.toggle('active',id===t);
-  });
-  render();
-}
-
-// ═══════════════════════════════════════════════════════
-// ADMIN
-// ═══════════════════════════════════════════════════════
-function openAdmin(){
-  if(!authReady){ setTimeout(openAdmin,200); return; }
-  if(firebase.auth().currentUser && !firebase.auth().currentUser.isAnonymous){
-    adminLocal=JSON.parse(JSON.stringify(state));
-    document.getElementById('admin-panel').classList.remove('hidden');
-    renderAdmin();
+function renderMatches(){
+  const el=document.getElementById('matchList');
+  const ids=allIds();
+  const effectiveDaysCheck=Math.max(S.releasedDays,S.overrideDays);
+  if(effectiveDaysCheck===0){
+    el.innerHTML='<div class="empty"><div class="icon">🔒</div><p>Pairings not yet released.</p></div>';
     return;
   }
-  document.getElementById('login-overlay').classList.remove('hidden');
-  document.getElementById('pw-input').value='';
-  document.getElementById('email-input').value='';
-}
-function tryLogin(){
-  var email=document.getElementById('email-input').value;
-  var pw=document.getElementById('pw-input').value;
-  firebase.auth().signInWithEmailAndPassword(email,pw)
-    .then(function(){
-      document.getElementById('login-overlay').classList.add('hidden');
-      adminLocal=JSON.parse(JSON.stringify(state));
-      document.getElementById('admin-panel').classList.remove('hidden');
-      renderAdmin();
-    })
-    .catch(function(err){ alert('Login fehlgeschlagen: '+err.message); });
-}
-function closeAdmin(){
-  document.getElementById('login-overlay').classList.add('hidden');
-  document.getElementById('admin-panel').classList.add('hidden');
-}
-function saveAndClose(){
-  state=JSON.parse(JSON.stringify(adminLocal));
-  db.ref('shufflecup2026').set(state)
-    .then(function(){ closeAdmin(); render(); })
-    .catch(function(err){ alert('Save failed: '+err.message+'\n\nCheck Firebase database rules.'); });
+  // group by day→round→type
+  const days={};
+  for(const id of ids){
+    const info=parseId(id);
+    if(!info) continue;
+    if(!days[info.day]) days[info.day]={};
+    const rk=`${info.round}_${info.type}`;
+    if(!days[info.day][rk]) days[info.day][rk]=[];
+    days[info.day][rk].push(id);
+  }
+  let html='';
+  for(const[day,rounds] of Object.entries(days).sort((a,b)=>+a[0]-+b[0])){
+    html+=`<div class="day-hdr">📅 Day ${day}</div>`;
+    for(const[rk,mids] of Object.entries(rounds)){
+      const[rnd,type]=rk.split('_');
+      const lbl=type==='singles'?'Singles':'Doubles';
+      html+=`<div class="rnd-hdr">Round ${rnd} · ${lbl}</div>`;
+      for(const id of mids) html+=matchCard(id);
+    }
+  }
+  el.innerHTML=html||'<div class="empty"><div class="icon">⏳</div><p>Waiting for tournament data…</p></div>';
 }
 
+function matchCard(id){
+  const info=parseId(id);
+  if(!info) return'';
+  const pairing=parsePairing(id,S.pairings[id]);
+  const winner=getWinner(S.results[id]);
+  const hasP=pairing&&pairing.player1&&pairing.player2;
+  const effectiveDays=Math.max(S.releasedDays, S.overrideDays);
+  const isRel=effectiveDays>0&&info.day<=effectiveDays;
+  const isOpen=hasP&&!winner&&isRel;
+  const isSettled=!!winner;
+
+  const typeLabel=info.type==='singles'?'Singles':'Doubles';
+  const badgeCls=info.type==='singles'?'b-sgl':'b-dbl';
+  const sCls=isSettled?'settled':isOpen?'open':'locked';
+  const sTxt=isSettled?'✓ Settled':isOpen?'● Open':'🔒 Locked';
+
+  const p1=pairing?.player1||'TBD';
+  const p2=pairing?.player2||'TBD';
+  const p1c=!pairing?.player1?'tbd':winner==='player1'?'winner':'';
+  const p2c=!pairing?.player2?'tbd':winner==='player2'?'winner':'';
+
+  let e1=DEF_ELO,e2=DEF_ELO;
+  if(pairing){
+    if(pairing.type==='singles'){e1=getElo(pairing.player1);e2=getElo(pairing.player2);}
+    else{e1=(getElo(pairing.player1_p1)+getElo(pairing.player1_p2))/2;
+         e2=(getElo(pairing.player2_p1)+getElo(pairing.player2_p2))/2;}
+  }
+  const o1=odds(e1,e2),o2=odds(e2,e1);
+
+  // My bets indicator
+  const mb=S.myBets[id]||{};
+  const myBetSides=Object.values(mb).filter(b=>!b.settled);
+  let myBetHtml='';
+  if(myBetSides.length){
+    const sides=myBetSides.map(b=>{
+      const n=b.side==='player1'?pairing?.player1:pairing?.player2;
+      return`${b.amount}🪙 on ${trunc(n,10)}`;
+    }).join(' · ');
+    myBetHtml=`<div class="my-bet-indicator">Your bet: ${esc(sides)}</div>`;
+  }
+
+  let actions='';
+  if(isOpen){
+    actions=`<div class="mc-actions">
+      <div class="bet-bar">
+        <button class="bet-side-btn" onclick="openBet('${id}','player1')" title="${esc(p1)}">${esc(trunc(p1,15))} · ${o1}x</button>
+        <button class="bet-side-btn" onclick="openBet('${id}','player2')" title="${esc(p2)}">${esc(trunc(p2,15))} · ${o2}x</button>
+      </div>
+    </div>`;
+  }
+
+  const t1=winner==='player1'?'🏆 ':'';
+  const t2=winner==='player2'?'🏆 ':'';
+
+  return`<div class="mc ${sCls}">
+    <div class="mc-head">
+      <span class="mc-badge ${badgeCls}">${typeLabel}</span>
+      <span class="mc-id">${id}</span>
+      <span class="mc-status ${sCls}">${sTxt}</span>
+    </div>
+    <div class="mc-body">
+      <div class="ps">
+        <div class="ps-name ${p1c}">${t1}${esc(p1)}</div>
+        ${hasP?`<span class="ps-odds">${o1}x</span>`:''}
+      </div>
+      <div class="mc-vs">VS</div>
+      <div class="ps" style="text-align:right">
+        <div class="ps-name ${p2c}" style="text-align:right">${t2}${esc(p2)}</div>
+        ${hasP?`<span class="ps-odds" style="text-align:right;display:block">${o2}x</span>`:''}
+      </div>
+    </div>
+    ${myBetHtml}${actions}
+  </div>`;
+}
+
+/* ════════════════════════════════
+   RENDER: MY BETS
+════════════════════════════════ */
+function renderMyBets(){
+  const el=document.getElementById('myBetsList');
+  const flat=[];
+  for(const[mid,bets] of Object.entries(S.myBets))
+    for(const[bid,b] of Object.entries(bets)) flat.push({mid,bid,...b});
+  if(!flat.length){el.innerHTML='<div class="empty"><div class="icon">🎰</div><p>You haven\'t placed any bets yet.</p></div>';return;}
+  flat.sort((a,b)=>(b.placedAt||0)-(a.placedAt||0));
+
+  let html='';
+  let pending=0,won=0,lost=0,winCoins=0;
+  for(const b of flat){
+    const pairing=parsePairing(b.mid,S.pairings[b.mid]);
+    const sideName=pairing?(b.side==='player1'?pairing.player1:pairing.player2):b.side;
+    let cls,tag,tagCls,detail;
+    if(b.refunded){cls='refunded';tag='Refunded';tagCls='t-refund';detail=`${b.amount}🪙 returned`;}
+    else if(!b.settled){cls='pending';tag='Pending';tagCls='t-pending';
+      const pot=Math.round(b.amount*b.odds);detail=`${b.amount}🪙 × ${b.odds}x → pot. ${pot}🪙`;pending++;}
+    else if(b.won){cls='won';tag=`+${Math.round(b.amount*b.odds)}🪙 won`;tagCls='t-won';
+      detail=`${b.amount}🪙 × ${b.odds}x`;won++;winCoins+=Math.round(b.amount*b.odds);}
+    else{cls='lost';tag='Lost';tagCls='t-lost';detail=`${b.amount}🪙 lost`;lost++;}
+
+    const cancelBtn=(!b.settled&&!b.refunded&&!S.results[b.mid])
+      ?`<button class="btn-cancel-bet" onclick="cancelBet('${b.mid}','${b.bid}')">✕ Cancel</button>`:'';
+    html+=`<div class="bet-item ${cls}">
+      <div class="bi-head">
+        <span class="bi-match">${b.mid}</span>
+        <span class="bi-tag ${tagCls}">${tag}</span>
+      </div>
+      <div class="bi-body">
+        <span class="bi-on">📌 ${esc(trunc(sideName,20))}</span>
+        <span class="bi-amt">${esc(detail)}</span>
+      </div>
+      ${cancelBtn?`<div style="text-align:right;margin-top:.35rem">${cancelBtn}</div>`:''}
+    </div>`;
+  }
+
+  const summary=`<div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap">
+    <div class="stat-chip"><strong>${pending}</strong> pending</div>
+    <div class="stat-chip"><strong>${won}</strong> won</div>
+    <div class="stat-chip"><strong>${lost}</strong> lost</div>
+    ${won?`<div class="stat-chip" style="color:var(--success)"><strong>+${winCoins}</strong>🪙 earnings</div>`:''}
+  </div>`;
+  el.innerHTML=summary+html;
+}
+
+/* ════════════════════════════════
+   RENDER: LEADERBOARD
+════════════════════════════════ */
+function renderLeaderboard(){
+  const el=document.getElementById('lbContent');
+  const users=Object.entries(S.allUsers)
+    .map(([key,u])=>({key,name:u.displayName||key,coins:u.coins||0}))
+    .sort((a,b)=>b.coins-a.coins);
+  if(!users.length){el.innerHTML='<div class="empty"><div class="icon">🏆</div><p>No bettors yet.</p></div>';return;}
+
+  const myKey=sk(S.user||'');
+  let html=`<table class="lb-table"><thead><tr>
+    <th>#</th><th>Name</th><th>W/L</th><th style="text-align:right">🪙</th>
+  </tr></thead><tbody>`;
+
+  users.forEach((u,i)=>{
+    const r=i+1;
+    const rc=r===1?'r1':r===2?'r2':r===3?'r3':'';
+    const em=r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+    const me=u.key===myKey;
+    const nc=me?'lb-name me':'lb-name';
+    const meTag=me?' ‹ You':'';
+    const delta=u.coins-START;
+    const dTxt=delta>0?`+${delta}`:delta<0?`${delta}`:'–';
+    const dCls=delta>0?'pos':delta<0?'neg':'';
+    html+=`<tr>
+      <td class="lb-rank ${rc}">${em}</td>
+      <td class="${nc}">${esc(u.name)}${meTag}</td>
+      <td class="lb-delta ${dCls}">${dTxt}</td>
+      <td class="lb-coins">${u.coins}</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+/* ════════════════════════════════
+   RENDER: ADMIN
+════════════════════════════════ */
+  async function resetAllCoins(){
+  if(!confirm('Alle Spieler auf 100 Coins zurücksetzen? (Nicht rückgängig)')) return;
+  const snap = await db.ref(PATH.users).once('value');
+  const users = snap.val()||{};
+  const upd = {};
+  for(const key of Object.keys(users)) upd[`${PATH.users}/${key}/coins`] = 100;
+  await db.ref().update(upd);
+  toast(`✅ ${Object.keys(users).length} Spieler auf 100 🪙 zurückgesetzt`,'success');
+}
 function renderAdmin(){
-  var rd=adminLocal.releasedDays!=null?adminLocal.releasedDays:1;
-  var rb='';
-  var noneAct=rd===0;
-  rb+='<button onclick="setReleasedDays(0)" style="flex:1;padding:10px;border-radius:6px;border:none;cursor:pointer;font-family:\'Bebas Neue\',serif;letter-spacing:1px;font-size:13px;background:'+(noneAct?'#7f0e1e':'#1a2040')+';color:'+(noneAct?'#fff':'#7080a0')+'">'+(noneAct?'🔒 ':'')+'NONE</button>';
-  [1,2,3].forEach(function(d){
-    var act=rd>=d;
-    rb+='<button onclick="setReleasedDays('+d+')" style="flex:1;padding:10px;border-radius:6px;border:none;cursor:pointer;font-family:\'Bebas Neue\',serif;letter-spacing:1px;font-size:13px;background:'+(act?'#c9a227':'#1a2040')+';color:'+(act?'#000':'#7080a0')+'">'+(act?'ON ':'')+'DAY '+d+'</button>';
+  const el=document.getElementById('adminPanel');
+  const ids=allIds();
+  const openIds=ids.filter(id=>{
+    const p=parsePairing(id,S.pairings[id]);
+    return p&&p.player1&&p.player2&&!getWinner(S.results[id]);
   });
-  document.getElementById('release-btns').innerHTML=rb;
-  document.getElementById('release-info').textContent=rd===0?'All days locked. Players see no pairings.':'Players see Day 1'+(rd>=2?'+Day 2':'')+(rd>=3?'+Day 3':'')+'. Others locked.';
 
-  var tb='';
-  ['Singles','Doubles'].forEach(function(t){
-    tb+='<button onclick="setAdminType(\''+t+'\')" style="padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-family:\'Bebas Neue\',serif;letter-spacing:1px;background:'+(adminType===t?'#c9a227':'#1a2040')+';color:'+(adminType===t?'#000':'#7080a0')+'">'+t+'</button>';
-  });
-  tb+='<div style="flex:1"></div>';
-  [1,2,3].forEach(function(d){
-    tb+='<button onclick="setAdminDay('+d+')" style="padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-family:\'Bebas Neue\',serif;letter-spacing:1px;background:'+(adminDay===d?'#c9a227':'#1a2040')+';color:'+(adminDay===d?'#000':'#7080a0')+'">DAY '+d+'</button>';
-  });
-  document.getElementById('admin-type-btns').innerHTML=tb;
+  const matchOpts=openIds.map(id=>`<option value="${id}">${id}</option>`).join('');
+  const allOpts=ids.map(id=>{
+    const p=parsePairing(id,S.pairings[id]);
+    const l=`${id}: ${p?.player1||'TBD'} vs ${p?.player2||'TBD'}`;
+    return`<option value="${id}">${esc(l)}</option>`;
+  }).join('');
 
-  var base=adminType==='Singles'?SINGLES:DOUBLES;
-  var matches=base.filter(function(m){return m.d===adminDay;});
-  var roundNums=[]; matches.forEach(function(m){if(roundNums.indexOf(m.r)<0)roundNums.push(m.r);});
-  var isD=adminType==='Doubles';
-  var selStyle='background:#0a0e1a;border:1px solid #1c2540;color:#c8d0e8;padding:5px 8px;border-radius:4px;width:100%;font-size:12px;outline:none;cursor:pointer';
-
-  var mh='';
-  roundNums.forEach(function(rn){
-    var rm=matches.filter(function(m){return m.r===rn;});
-    mh+='<div style="margin-bottom:16px"><div style="font-family:\'Bebas Neue\',serif;color:#c9a227;font-size:16px;letter-spacing:2px;margin-bottom:8px">ROUND '+rn+'</div>';
-    rm.forEach(function(m){
-      var ov=adminLocal.pairings[m.id]||{};
-      var cA=ov.am!==undefined?ov.am:m.am;
-      var cE=ov.eu!==undefined?ov.eu:m.eu;
-      var res=adminLocal.results[m.id]||'';
-
-      function selAm(idx,val){
-        return '<select onchange="setPairAm(\''+m.id+'\','+idx+',this.value,'+isD+')" style="'+selStyle+(idx>0?';margin-top:4px':'')+'">'+
-          AM.map(function(p){return '<option'+(p===val?' selected':'')+'>'+p+'</option>';}).join('')+'</select>';
+  const pairOpts=(()=>{
+    let o='';
+    const dayLabels={1:'Day 1 (R1+R2)',2:'Day 2 (R3+R4)',3:'Day 3 (R5+R6)'};
+    for(const [day,label] of Object.entries(dayLabels)){
+      o+=`<optgroup label="${label}">`;
+      for(const id of SCAFFOLD){
+        const info=parseId(id);
+        if(!info||info.day!==+day) continue;
+        const p=parsePairing(id,S.pairings[id]);
+        const ok=p?.player1&&p.player1!=='TBD'&&p.player1!=='?';
+        o+=`<option value="${id}">${ok?'✓':'–'} ${id}</option>`;
       }
-      function selEu(idx,val){
-        return '<select onchange="setPairEu(\''+m.id+'\','+idx+',this.value,'+isD+')" style="'+selStyle+(idx>0?';margin-top:4px':'')+'">'+
-          EU.map(function(p){return '<option'+(p===val?' selected':'')+'>'+p+'</option>';}).join('')+'</select>';
-      }
+      o+='</optgroup>';
+    }
+    return o;
+  })();
 
-      var amSel=isD?selAm(0,cA[0]||'')+selAm(1,cA[1]||''):selAm(0,typeof cA==='string'?cA:(cA[0]||''));
-      var euSel=isD?selEu(0,cE[0]||'')+selEu(1,cE[1]||''):selEu(0,typeof cE==='string'?cE:(cE[0]||''));
+  el.innerHTML=`
+  <div class="admin-sec">
+    <h3>📅 Release Days for Betting</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">
+      Shuffle Cup app: <strong style="color:var(--gold)">${S.releasedDays}</strong> day(s) &nbsp;·&nbsp;
+      Betting override: <strong style="color:var(--gold)">${S.overrideDays}</strong> &nbsp;·&nbsp;
+      <strong style="color:var(--success)">Effective: Day ${Math.max(S.releasedDays,S.overrideDays)}</strong>
+    </p>
+    <div class="admin-row">
+      <select id="aRelDaysSel">
+        <option value="0" ${S.releasedDays===0?'selected':''}>0 – All locked</option>
+        <option value="1" ${S.releasedDays===1?'selected':''}>1 – Day 1 open (Rounds 1+2)</option>
+        <option value="2" ${S.releasedDays===2?'selected':''}>2 – Day 2 open (Rounds 3+4)</option>
+        <option value="3" ${S.releasedDays===3?'selected':''}>3 – Day 3 open (Rounds 5+6)</option>
+      </select>
+      <button class="btn btn-gold btn-sm" id="aRelDaysBtn">Set →</button>
+    </div>
+  </div>
 
-      var resBtns=[['A','AM','#b91c2e'],['D','½','#f59e0b'],['E','EU','#0a3180']].map(function(arr){
-        var act=res===arr[0];
-        return '<button onclick="setRes(\''+m.id+'\',\''+arr[0]+'\')" style="padding:4px 12px;border-radius:4px;border:none;cursor:pointer;font-weight:700;font-size:12px;background:'+(act?arr[2]:'#1a2040')+';color:'+(act?'#fff':'#7080a0')+'">'+arr[1]+'</button>';
-      }).join('');
-      var clearBtn=res?'<button onclick="setRes(\'"+m.id+"\',\'\')" style="padding:4px 8px;border-radius:4px;border:none;cursor:pointer;background:transparent;color:#7080a0;font-size:11px">clear</button>':'';
+  <div class="admin-sec">
+    <h3>⚡ Quick Load</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Alle Paarungen (Day 1–3, je 24 Singles + 12 Doubles) auf einmal in Firebase schreiben.</p>
+    <button class="btn btn-gold" id="aLoadDay1Btn">🚀 Load All Pairings (Day 1–3)</button>
+  </div>
+  <div class="admin-sec">
+    <h3>🎯 Seed Initial ELOs</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Schreibt Start-ELOs aus dem Ranking-Sheet nach Firebase.</p>
+    <div class="admin-row">
+      <button class="btn btn-gold" id="aSeedEloBtn">🎯 Nur leere</button>
+      <button class="btn btn-red" id="aForceEloBtn">⚠️ Force Overwrite</button>
+    </div>
+  </div>
 
-      mh+='<div style="background:#0a0e20;border:1px solid #1c2540;border-radius:8px;padding:10px 12px;margin-bottom:8px">'+
-        '<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:start;margin-bottom:8px">'+
-          '<div>'+amSel+'</div>'+
-          '<span style="color:#7080a0;font-size:11px;letter-spacing:2px;align-self:center">vs</span>'+
-          '<div>'+euSel+'</div>'+
-        '</div>'+
-        '<div style="display:flex;gap:6px;align-items:center">'+
-          '<span style="color:#7080a0;font-size:11px;margin-right:4px">Result:</span>'+
-          resBtns+clearBtn+
-          '<span style="margin-left:auto;color:#7080a0;font-size:10px">Ct.'+m.c+' M'+m.m+'</span>'+
-        '</div>'+
-      '</div>';
-    });
-    mh+='</div>';
+  <div class="admin-sec">
+    <h3>📊 Status</h3>
+    <div class="stat-row">
+      <div class="stat-chip">Days released: <strong>${S.releasedDays||'0'}</strong></div>
+      <div class="stat-chip">Pairings: <strong>${Object.keys(S.pairings).length}</strong></div>
+      <div class="stat-chip">Results: <strong>${Object.keys(S.results).length}</strong></div>
+      <div class="stat-chip">Open for bets: <strong>${openIds.length}</strong></div>
+    </div>
+  </div>
+
+  <div class="admin-sec">
+    <h3>📋 Set Pairings</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Spielernamen direkt eintragen — ersetzt TBD-Einträge sofort.</p>
+    <div class="admin-row">
+      <select id="aPairMatchSel">${pairOpts}</select>
+    </div>
+    <div id="aPairFields" style="margin-top:.35rem"></div>
+    <button class="btn btn-gold" id="aPairBtn" style="margin-top:.4rem">Save Pairing →</button>
+  </div>
+
+  <div class="admin-sec">
+    <h3>🏅 Enter Result</h3>
+    <div class="admin-row">
+      <select id="aMatchSel">${matchOpts||'<option value="">No open matches</option>'}</select>
+    </div>
+    <div class="admin-row" id="aWinnerRow" style="display:none">
+      <select id="aWinnerSel"></select>
+    </div>
+    <button class="btn btn-gold" id="aResultBtn" style="margin-top:.4rem">Submit Result ✓</button>
+  </div>
+
+  <div class="admin-sec">
+    <h3>🔄 Substitution</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Bets on the substituted player will be refunded.</p>
+    <div class="admin-row">
+      <select id="aSubMatchSel">${allOpts}</select>
+    </div>
+    <div class="admin-row">
+      <select id="aSubSide">
+        <option value="player1">Side 1 (player1)</option>
+        <option value="player2">Side 2 (player2)</option>
+      </select>
+    </div>
+    <div class="admin-row">
+      <input type="text" id="aSubName" placeholder="New player / team name" style="flex:1">
+    </div>
+    <button class="btn btn-red" id="aSubBtn">Substitute</button>
+  </div>
+
+  <div class="admin-sec">
+    <h3>💰 Adjust Coins</h3>
+    <div class="admin-row">
+      <input type="text" id="aCoinUser" placeholder="Player name" style="flex:1">
+      <input type="number" id="aCoinAmt" placeholder="± Coins" style="flex:.45;min-width:80px">
+    </div>
+    <button class="btn btn-outline" id="aCoinBtn">Apply</button>
+  </div>
+<div class="admin-sec">
+    <h3>🔄 Season Reset</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Alle Spieler auf 100 Startguthaben zurücksetzen.</p>
+    <button class="btn btn-red" id="aResetCoinsBtn">🔄 Alle auf 100 Coins zurücksetzen</button>
+  </div>
+  <div class="admin-sec">
+    <h3>🗑️ Delete User</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">Löscht User-Account + alle Wetten. Coins weg. Nicht rückgängig machbar.</p>
+    <div class="admin-row">
+      <input type="text" id="aDelUser" placeholder="Exact player name" style="flex:1">
+    </div>
+    <button class="btn btn-red" id="aDelBtn">🗑️ Delete User</button>
+  </div>
+<div class="admin-sec">
+    <h3>🔑 User PIN zurücksetzen / Reset User PIN</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">User muss beim nächsten Login einen neuen PIN setzen.</p>
+    <div class="admin-row">
+      <input type="text" id="aResetPinUser" placeholder="Exact player name" style="flex:1">
+    </div>
+    <button class="btn btn-outline" id="aResetPinBtn">🔑 Reset PIN</button>
+  </div>
+  <div class="admin-sec">
+    <h3>🔑 Change Admin PIN</h3>
+    <div class="admin-row">
+      <input type="password" id="aNewPin" placeholder="New PIN (min. 4 chars)" style="flex:1">
+    </div>
+    <button class="btn btn-outline" id="aPinBtn">Save</button>
+  </div>`;
+
+  // Wire
+  document.getElementById('aRelDaysBtn')?.addEventListener('click', async ()=>{
+    const v=parseInt(document.getElementById('aRelDaysSel')?.value);
+    await db.ref(`${PATH.cfg}/releasedDaysOverride`).set(v);
+    toast(`Betting unlocked for Day ${v} ✓`,'success');
+    renderAdmin();
   });
-  document.getElementById('admin-matches').innerHTML=mh;
+  document.getElementById('aLoadDay1Btn')?.addEventListener('click', adminLoadDay1);
+  document.getElementById('aSeedEloBtn')?.addEventListener('click', adminSeedElos);
+  document.getElementById('aForceEloBtn')?.addEventListener('click', ()=>adminSeedElos(true));
+  document.getElementById('aPairMatchSel')?.addEventListener('change',updatePairFields);
+  updatePairFields();
+  document.getElementById('aPairBtn')?.addEventListener('click',adminSavePairing);
+  const matchSel=document.getElementById('aMatchSel');
+  matchSel?.addEventListener('change',updateWinnerRow);
+  updateWinnerRow();
+  document.getElementById('aResultBtn')?.addEventListener('click',adminResult);
+  document.getElementById('aSubBtn')?.addEventListener('click',adminSub);
+  document.getElementById('aCoinBtn')?.addEventListener('click',adminCoin);
+  document.getElementById('aDelBtn')?.addEventListener('click',adminDeleteUser);
+  document.getElementById('aPinBtn')?.addEventListener('click',adminPin);
+  document.getElementById('aResetCoinsBtn')?.addEventListener('click', resetAllCoins);
+  document.getElementById('aResetPinBtn')?.addEventListener('click', async () => {
+    const name = document.getElementById('aResetPinUser')?.value?.trim();
+    if (!name) { toast('Enter player name', 'error'); return; }
+    if (!confirm(`PIN für "${name}" zurücksetzen?`)) return;
+    try {
+      await ShuffleAuth.adminResetPin(name);
+      document.getElementById('aResetPinUser').value = '';
+      toast(`PIN für ${name} zurückgesetzt ✓`, 'success');
+    } catch(e) {
+      toast('Fehler: ' + e.message, 'error');
+    }
+  });
 }
 
-function setReleasedDays(d){ adminLocal.releasedDays=d; renderAdmin(); }
-function setAdminType(t){ adminType=t; renderAdmin(); }
-function setAdminDay(d){ adminDay=d; renderAdmin(); }
-function setRes(id,v){
-  if(v) adminLocal.results[id]=v; else delete adminLocal.results[id];
+function updateWinnerRow(){
+  const sel=document.getElementById('aMatchSel');
+  const row=document.getElementById('aWinnerRow');
+  const wSel=document.getElementById('aWinnerSel');
+  if(!sel||!row||!wSel) return;
+  const id=sel.value;
+  if(!id){row.style.display='none';return;}
+  const p=parsePairing(id,S.pairings[id]);
+  if(!p){row.style.display='none';return;}
+  row.style.display='flex';
+  wSel.innerHTML=`<option value="player1">🏆 ${esc(p.player1||'Player 1')}</option>
+    <option value="player2">🏆 ${esc(p.player2||'Player 2')}</option>`;
+}
+
+async function adminResult(){
+  const id=document.getElementById('aMatchSel')?.value;
+  const winner=document.getElementById('aWinnerSel')?.value;
+  if(!id||!winner){toast('Select match and winner','error');return;}
+  await db.ref(`${PATH.results}/${id}`).set({winner});
+  toast(`Result for ${id} submitted ✓`,'success');
   renderAdmin();
 }
-function setPairAm(id,idx,val,isD){
-  if(!adminLocal.pairings[id]) adminLocal.pairings[id]={};
-  var base=adminType==='Singles'?SINGLES:DOUBLES;
-  var m=base.filter(function(x){return x.id===id;})[0];
-  var cur=adminLocal.pairings[id].am||(isD?m.am.slice():m.am);
-  if(isD){var a=Array.isArray(cur)?cur.slice():m.am.slice();a[idx]=val;adminLocal.pairings[id].am=a;}
-  else{adminLocal.pairings[id].am=val;}
-}
-function setPairEu(id,idx,val,isD){
-  if(!adminLocal.pairings[id]) adminLocal.pairings[id]={};
-  var base=adminType==='Singles'?SINGLES:DOUBLES;
-  var m=base.filter(function(x){return x.id===id;})[0];
-  var cur=adminLocal.pairings[id].eu||(isD?m.eu.slice():m.eu);
-  if(isD){var a=Array.isArray(cur)?cur.slice():m.eu.slice();a[idx]=val;adminLocal.pairings[id].eu=a;}
-  else{adminLocal.pairings[id].eu=val;}
+
+async function adminSub(){
+  const id=document.getElementById('aSubMatchSel')?.value;
+  const side=document.getElementById('aSubSide')?.value;
+  const name=document.getElementById('aSubName')?.value?.trim();
+  if(!id||!name){toast('Please fill in all fields','error');return;}
+
+  const snap=await db.ref(`${PATH.bets}/${id}`).once('value');
+  const bets=snap.val();
+  let refunded=0;
+  if(bets){
+    for(const[bid,b] of Object.entries(bets)){
+      if(b.side===side&&!b.settled){
+        await db.ref(`${PATH.users}/${sk(b.user)}/coins`).transaction(c=>(c||0)+b.amount);
+        await db.ref(`${PATH.bets}/${id}/${bid}`).update({settled:true,won:false,refunded:true});
+        refunded++;
+      }
+    }
+  }
+  const field=side==='player1'?'player1':'player2';
+  await db.ref(`${PATH.pairings}/${id}/${field}`).set(name);
+  toast(`${refunded?refunded+' bet(s) refunded. ':''}${side} → ${name} ✓`,'success');
+  renderAdmin();
 }
 
-// Initial render
-render();
-</script>
+function updatePairFields(){
+  const id=document.getElementById('aPairMatchSel')?.value;
+  const el=document.getElementById('aPairFields');
+  if(!el||!id){return;}
+  const info=parseId(id);
+  if(!info){el.innerHTML='';return;}
+  const raw=S.pairings[id]||{};
+  const e=parsePairing(id,raw);
+  const v=(x)=>esc(x&&x!=='TBD'&&x!=='?'?x:'');
+  if(info.type==='singles'){
+    el.innerHTML=`
+      <div class="admin-row"><input type="text" id="aPairP1" placeholder="Player 1" value="${v(e?.player1)}" style="flex:1"></div>
+      <div class="admin-row"><input type="text" id="aPairP2" placeholder="Player 2" value="${v(e?.player2)}" style="flex:1"></div>`;
+  } else {
+    el.innerHTML=`
+      <p style="font-size:.7rem;color:var(--text-muted);margin-bottom:.25rem">Team 1</p>
+      <div class="admin-row"><input type="text" id="aPairT1P1" placeholder="Team 1 · Player 1" value="${v(raw.player1)}" style="flex:1"></div>
+      <div class="admin-row"><input type="text" id="aPairT1P2" placeholder="Team 1 · Player 2" value="${v(raw.player2)}" style="flex:1"></div>
+      <p style="font-size:.7rem;color:var(--text-muted);margin:.25rem 0">Team 2</p>
+      <div class="admin-row"><input type="text" id="aPairT2P1" placeholder="Team 2 · Player 1" value="${v(raw.player3)}" style="flex:1"></div>
+      <div class="admin-row"><input type="text" id="aPairT2P2" placeholder="Team 2 · Player 2" value="${v(raw.player4)}" style="flex:1"></div>`;
+  }
+}
+
+async function adminSeedElos(force=false){
+  const btnId=force?'aForceEloBtn':'aSeedEloBtn';
+  const btn=document.getElementById(btnId);
+  if(btn){btn.textContent='⏳ Writing…';btn.disabled=true;}
+  try{
+    const entries=Object.entries(INITIAL_ELOS);
+    if(!entries.length){toast('❌ INITIAL_ELOS ist leer!','error');return;}
+    let written=0, skipped=0, errors=0;
+    const errKeys=[];
+    for(const[key,elo] of entries){
+      try{
+        if(!force){
+          const snap=await db.ref(`${PATH.elos}/${key}/elo`).once('value');
+          if(snap.val()!=null){skipped++;continue;}
+        }
+        // Write the whole object, not just /elo sub-path
+        await db.ref(`${PATH.elos}/${key}`).update({elo});
+        written++;
+      }catch(e2){errors++;errKeys.push(key);}
+    }
+    if(errors>0) toast(`⚠️ ${errors} Fehler: ${errKeys.slice(0,3).join(', ')}…`,'error');
+    else toast(`✅ ${written} gesetzt · ${skipped} übersprungen (${entries.length} total)`,'success');
+    // Verify: read back one value
+    const testKey=entries[0][0];
+    const verify=await db.ref(`${PATH.elos}/${testKey}/elo`).once('value');
+    toast(`🔍 Verify ${testKey}: Firebase=${verify.val()} (soll ${entries[0][1]})`,'success');
+  }catch(e){
+    toast('Seed failed: '+e.message,'error');
+  }finally{
+    if(btn){btn.textContent=force?'⚠️ Force Overwrite':'🎯 Nur leere';btn.disabled=false;}
+    renderAdmin();
+  }
+}
+
+async function adminLoadDay1(){
+  const btn=document.getElementById('aLoadDay1Btn');
+  if(btn){btn.textContent='⏳ Loading…';btn.disabled=true;}
+  try{
+    const upd={};
+    for(const[id,data] of Object.entries(DAY1_PAIRINGS)){
+      upd[`${PATH.pairings}/${id}`]=data;
+    }
+    await db.ref().update(upd);
+    toast(`${Object.keys(DAY1_PAIRINGS).length} pairings loaded ✓`,'success');
+  }catch(e){
+    toast('Error: '+e.message,'error');
+  }
+  renderAdmin();
+}
+
+async function adminSavePairing(){
+  const id=document.getElementById('aPairMatchSel')?.value;
+  const info=parseId(id);
+  if(!id||!info){toast('Select a match','error');return;}
+  let data;
+  if(info.type==='singles'){
+    const p1=document.getElementById('aPairP1')?.value?.trim();
+    const p2=document.getElementById('aPairP2')?.value?.trim();
+    if(!p1||!p2){toast('Enter both player names','error');return;}
+    data={player1:p1,player2:p2};
+  } else {
+    const p1=document.getElementById('aPairT1P1')?.value?.trim();
+    const p2=document.getElementById('aPairT1P2')?.value?.trim()||'';
+    const p3=document.getElementById('aPairT2P1')?.value?.trim();
+    const p4=document.getElementById('aPairT2P2')?.value?.trim()||'';
+    if(!p1||!p3){toast('Enter at least one player per team','error');return;}
+    data={player1:p1,player2:p2,player3:p3,player4:p4};
+  }
+  await db.ref(`${PATH.pairings}/${id}`).set(data);
+  toast(`${id} saved ✓`,'success');
+  renderAdmin();
+}
+
+async function adminCoin(){
+  const name=document.getElementById('aCoinUser')?.value?.trim();
+  const amt=parseInt(document.getElementById('aCoinAmt')?.value);
+  if(!name||isNaN(amt)){toast('Enter player name and amount','error');return;}
+  await db.ref(`${PATH.users}/${sk(name)}/coins`).transaction(c=>Math.max(0,(c||0)+amt));
+  toast(`${amt>=0?'+':''}${amt} coins for ${name} ✓`,'success');
+}
+
+async function adminPin(){
+  const np=document.getElementById('aNewPin')?.value?.trim();
+  if(!np||np.length<4){toast('PIN must be at least 4 characters','error');return;}
+  await db.ref(`${PATH.cfg}/adminPin`).set(np);
+  S.adminPin=np;
+  toast('PIN saved ✓','success');
+}
+
+/* ════════════════════════════════
+   BET MODAL
+════════════════════════════════ */
+function openBet(matchId,side){
+  if(!S.user) return;
+  const pairing=parsePairing(matchId,S.pairings[matchId]);
+  if(!pairing) return;
+  const info=parseId(matchId);
+
+  let e1,e2;
+  if(pairing.type==='singles'){e1=getElo(pairing.player1);e2=getElo(pairing.player2);}
+  else{e1=(getElo(pairing.player1_p1)+getElo(pairing.player1_p2))/2;
+       e2=(getElo(pairing.player2_p1)+getElo(pairing.player2_p2))/2;}
+
+  const o1=odds(e1,e2),o2=odds(e2,e1);
+  S.bm={matchId,side,o1,o2};
+
+  document.getElementById('betInfo').innerHTML=`
+    <div style="font-weight:600;margin-bottom:.2rem">${matchId} · ${info?.type==='singles'?'Singles':'Doubles'} R${info?.round}</div>
+    <div style="font-size:.78rem;color:var(--text-dim)">${esc(pairing.player1)} vs ${esc(pairing.player2)}</div>`;
+
+  document.getElementById('sidesGrid').innerHTML=`
+    <div class="side-box ${side==='player1'?'sel':''}" onclick="selSide('player1')" id="sb1">
+      <div class="sn" title="${esc(pairing.player1)}">${esc(trunc(pairing.player1,14))}</div>
+      <div class="so">${o1}x</div>
+      <div class="se">ELO ${Math.round(e1)}</div>
+    </div>
+    <div class="vs-sep">VS</div>
+    <div class="side-box ${side==='player2'?'sel':''}" onclick="selSide('player2')" id="sb2">
+      <div class="sn" title="${esc(pairing.player2)}">${esc(trunc(pairing.player2,14))}</div>
+      <div class="so">${o2}x</div>
+      <div class="se">ELO ${Math.round(e2)}</div>
+    </div>`;
+
+  updPay();
+  document.getElementById('betModal').classList.remove('hidden');
+}
+
+function selSide(side){
+  S.bm.side=side;
+  document.getElementById('sb1')?.classList.toggle('sel',side==='player1');
+  document.getElementById('sb2')?.classList.toggle('sel',side==='player2');
+  updPay();
+}
+
+function setAmt(v){
+  const sl=document.getElementById('amtSlider');
+  if(sl){sl.value=v;sl.dispatchEvent(new Event('input'));}
+}
+
+function updPay(){
+  const amt=parseInt(document.getElementById('amtSlider')?.value)||5;
+  document.getElementById('amtVal').textContent=amt;
+  const o=S.bm.side==='player1'?S.bm.o1:S.bm.o2;
+  const total=Math.round(amt*o);
+  const net=total-amt;
+  document.getElementById('payVal').textContent=`${total} 🪙 (+${net})`;
+}
+
+async function confirmBet(){
+  const{matchId,side,o1,o2}=S.bm;
+  const amt=parseInt(document.getElementById('amtSlider')?.value)||5;
+  if(!matchId||!side){toast('Please select a side','error');return;}
+  if(S.coins<amt){toast('Not enough coins!','error');return;}
+
+  const o=side==='player1'?o1:o2;
+  const userKey=sk(S.user);
+  let ok=false;
+  await db.ref(`${PATH.users}/${userKey}/coins`).transaction(c=>{
+    if((c||0)<amt) return undefined;
+    ok=true; return(c||0)-amt;
+  });
+  if(!ok){toast('Coin transaction failed','error');return;}
+
+  await db.ref(`${PATH.bets}/${matchId}`).push({
+    user:S.user,side,amount:amt,odds:o,
+    placedAt:firebase.database.ServerValue.TIMESTAMP,
+    settled:false,won:null
+  });
+
+  closeBet();
+  const p=parsePairing(matchId,S.pairings[matchId]);
+  const sn=side==='player1'?p?.player1:p?.player2;
+  toast(`${amt}🪙 on ${trunc(sn,12)} @ ${o}x ✓`,'success');
+}
+
+function closeBet(){document.getElementById('betModal').classList.add('hidden');}
+
+/* ════════════════════════════════
+   PLAYER PICKER (login screen)
+════════════════════════════════ */
+function extractNames(raw){
+  const names=new Set();
+  const add=n=>{if(n&&typeof n==='string'&&n.trim()&&n!=='TBD'&&n!=='?')names.add(n.trim());};
+  for(const pairing of Object.values(raw)){
+    if(!pairing) continue;
+    add(pairing.player1);add(pairing.player2);
+    add(pairing.player3);add(pairing.player4);
+    add(pairing.p1);add(pairing.p2);
+    add(pairing.home);add(pairing.away);
+    for(const tk of['team1','team2']){
+      const t=pairing[tk];
+      if(t&&typeof t==='object'){add(t.player1);add(t.player2);}
+    }
+  }
+  return[...names].sort((a,b)=>a.localeCompare(b));
+}
+
+async function buildPicker(){
+  const grid=document.getElementById('pickerGrid');
+  try{
+    const snap=await db.ref(PATH.pairings).once('value');
+    let names=extractNames(snap.val()||{});
+    // Fallback: Namen aus hardcodierten Pairings wenn Firebase leer
+    if(!names.length) names=extractNames(DAY1_PAIRINGS);
+    if(!names.length){
+      grid.innerHTML='<div class="picker-loading" style="color:var(--text-muted);grid-column:span 2">No players loaded yet</div>';
+      return;
+    }
+    grid.innerHTML=names.map(n=>
+      `<button class="pname-btn" data-n="${esc(n)}" onclick="login(this.dataset.n)">${esc(n)}</button>`
+    ).join('');
+  }catch(e){
+    // Bei Fehler: Fallback auf hardcodierte Pairings
+    const names=extractNames(DAY1_PAIRINGS);
+    if(names.length){
+      grid.innerHTML=names.map(n=>
+        `<button class="pname-btn" data-n="${esc(n)}" onclick="login(this.dataset.n)">${esc(n)}</button>`
+      ).join('');
+    } else {
+      grid.innerHTML='<div class="picker-loading" style="color:var(--danger);grid-column:span 2">Could not load players</div>';
+    }
+  }
+}
+
+/* ════════════════════════════════
+   LOGIN & LISTENERS
+════════════════════════════════ */
+async function login(name){
+  name=name.trim();
+  if(!name){toast('Please enter your name','error');return;}
+  const ok = await ShuffleAuth.loginAs(name);
+  if(!ok) return;
+  const key=sk(name);
+  const ref=db.ref(`${PATH.users}/${key}`);
+  const snap=await ref.once('value');
+  if(!snap.exists()){
+    await ref.set({displayName:name,coins:START,registeredAt:firebase.database.ServerValue.TIMESTAMP});
+  } else if(!snap.val().displayName){
+    await ref.update({displayName:name});
+  }
+  S.user=name;
+  document.getElementById('hdrUser').textContent=name;
+  document.getElementById('loginWrap').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.body.classList.add('app-mode');
+  startListeners(key);
+}
+
+async function adminDeleteUser(){
+  const name=document.getElementById('aDelUser')?.value?.trim();
+  if(!name){toast('Enter player name','error');return;}
+  const key=sk(name);
+  try{
+    // Delete user account
+    await db.ref(`${PATH.users}/${key}`).remove();
+    // Delete all their bets
+    const betsSnap=await db.ref(PATH.bets).once('value');
+    const allBets=betsSnap.val()||{};
+    const upd={};
+    for(const[mid,matchBets] of Object.entries(allBets)){
+      for(const[bid,b] of Object.entries(matchBets)){
+        if(b.user===name) upd[`${PATH.bets}/${mid}/${bid}`]=null;
+      }
+    }
+    if(Object.keys(upd).length) await db.ref('/').update(upd);
+    document.getElementById('aDelUser').value='';
+    toast(`🗑️ "${name}" deleted (key: ${key})`, 'success');
+  }catch(e){
+    toast('Delete failed: '+e.message,'error');
+  }
+}
+
+async function cancelBet(mid, bid){
+  if(!S.user) return;
+  const betRef=db.ref(`${PATH.bets}/${mid}/${bid}`);
+  const snap=await betRef.once('value');
+  const bet=snap.val();
+  if(!bet){toast('Bet not found','error');return;}
+  if(bet.user!==S.user){toast('Not your bet','error');return;}
+  if(bet.settled||bet.refunded){toast('Bet already settled','error');return;}
+  if(S.results[mid]){toast('Result already entered — cannot cancel','error');return;}
+  // Refund coins and mark bet as refunded
+  const upd={};
+  upd[`${PATH.bets}/${mid}/${bid}/settled`]=true;
+  upd[`${PATH.bets}/${mid}/${bid}/refunded`]=true;
+  upd[`${PATH.bets}/${mid}/${bid}/won`]=false;
+  upd[`${PATH.users}/${sk(S.user)}/coins`]=firebase.database.ServerValue.increment(bet.amount);
+  await db.ref('/').update(upd);
+  toast(`✅ Bet cancelled — ${bet.amount}🪙 returned`,'success');
+}
+
+function startListeners(userKey){
+  db.ref(PATH.pairings).on('value',snap=>{
+    S.pairings=snap.val()||{};
+    renderMatches();
+  });
+
+  db.ref(PATH.results).on('value',snap=>{
+    const fresh=snap.val()||{};
+    for(const[id,r] of Object.entries(fresh)){
+      if(!S.results[id]&&r) settle(id,r);
+    }
+    S.results=fresh;
+    renderMatches();
+    renderMyBets();
+  });
+
+  db.ref(PATH.relDays).on('value',snap=>{
+    S.releasedDays=snap.val()||0;
+    renderMatches();
+  });
+
+  db.ref(`${PATH.users}/${userKey}`).on('value',snap=>{
+    const d=snap.val()||{};
+    const old=S.coins;
+    S.coins=d.coins??START;
+    const el=document.getElementById('hdrCoins');
+    el.textContent=S.coins;
+    if(S.coins>old){el.classList.add('animate');setTimeout(()=>el.classList.remove('animate'),800);}
+  });
+
+  db.ref(PATH.bets).on('value',snap=>{
+    const all=snap.val()||{};
+    S.myBets={};
+    for(const[mid,bets] of Object.entries(all))
+      for(const[bid,b] of Object.entries(bets||{}))
+        if(b.user===S.user){
+          if(!S.myBets[mid]) S.myBets[mid]={};
+          S.myBets[mid][bid]=b;
+        }
+    renderMyBets();
+    renderMatches(); // refresh "my bet" indicators
+  });
+
+  db.ref(PATH.elos).on('value',snap=>{
+    S.elos=snap.val()||{};
+    renderMatches();
+  });
+
+  db.ref(PATH.users).on('value',snap=>{
+    S.allUsers=snap.val()||{};
+    renderLeaderboard();
+  });
+
+  db.ref(`${PATH.cfg}/adminPin`).on('value',snap=>{
+    if(snap.val()) S.adminPin=snap.val();
+  });
+
+  db.ref(`${PATH.cfg}/releasedDaysOverride`).on('value',snap=>{
+    S.overrideDays=snap.val()||0;
+    renderMatches();
+  });
+  db.ref(`shufflecup2026_betting/outright_picks/${userKey}`).on('value',snap=>{
+    S.myOrPicks=snap.val()||{};
+    renderOutright();
+  });
+  db.ref('shufflecup2026_betting/outright_results').on('value',snap=>{
+    S.orResults=snap.val()||{};
+    renderOutright();
+  });
+  db.ref('shufflecup2026_betting/outright_settled').on('value',snap=>{
+    S.orSettled=snap.val()||{};
+    renderOutright();
+  });
+  db.ref('shufflecup2026_betting/outright_cfg/locked').on('value',snap=>{
+    S.orLocked=snap.val()||false;
+    renderOutright();
+  });
+}
+
+/* ════════════════════════════════
+   PIN KEYPAD
+════════════════════════════════ */
+let _pin='';
+function pinKey(k){
+  if(k==='DEL'){_pin=_pin.slice(0,-1);}
+  else if(k==='OK'){
+      if(ShuffleAuth.adminIsLocked()){
+        const mins=Math.ceil(ShuffleAuth.adminLockRemainingMs()/60000);
+        toast(`Admin gesperrt – noch ${mins} Minute(n). Zu viele Fehlversuche.`,'error');
+        _pin='';
+        const d=document.getElementById('pinDisplay');
+        if(d) d.textContent='––––';
+        return;
+      }
+      if(_pin===S.adminPin){
+        ShuffleAuth.adminSucceeded();
+        S.adminOk=true;
+        document.getElementById('adminGate').style.display='none';
+        document.getElementById('adminPanel').style.display='block';
+        renderAdmin();
+      } else {
+        ShuffleAuth.adminFailed();
+        toast('Wrong PIN','error');
+        _pin='';
+      }
+  } else if(_pin.length<8){_pin+=k;}
+  const d=document.getElementById('pinDisplay');
+  if(d) d.textContent=_pin?'●'.repeat(_pin.length):'––––';
+}
+function switchTab(id){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  document.querySelector(`[data-tab="${id}"]`)?.classList.add('active');
+  if(id==='tabLeaderboard') renderLeaderboard();
+if(id==='tabAdmin'&&S.adminOk) renderAdmin();
+if(id==='tabOutright') renderOutright();
+}
+
+/* ════════════════════════════════
+   TOAST
+════════════════════════════════ */
+function toast(msg,type='info'){
+  const w=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;
+  w.appendChild(t);setTimeout(()=>t.remove(),3000);
+}
+
+/* ════════════════════════════════
+   BOOT
+════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  buildPicker();
+
+  document.getElementById('loginBtn').onclick=()=>{
+    const name=window.prompt('Your name:');
+    if(name) login(name);
+  };
+
+  document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+  document.getElementById('amtSlider').addEventListener('input',updPay);
+  document.getElementById('betCancelBtn').onclick=closeBet;
+  document.getElementById('betConfirmBtn').onclick=confirmBet;
+  document.getElementById('betModal').onclick=e=>{if(e.target===document.getElementById('betModal'))closeBet();};
+});
+  <!-- Bug Fixes -->
+  </script>
+  <script src="shuffle-stakes-patch.js"></script>
+  <script src="shuffle-stakes-security.js"></script>
 </body>
 </html>
