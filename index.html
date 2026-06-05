@@ -1680,15 +1680,15 @@ async function buildPicker(){
       grid.innerHTML='<div class="picker-loading" style="color:var(--text-muted);grid-column:span 2">No players loaded yet</div>';
       return;
     }
-    grid.innerHTML=names.map(n=>
-      `<button class="pname-btn" data-n="${esc(n)}" onclick="login(this.dataset.n)">${esc(n)}</button>`
+   grid.innerHTML=names.map(n=>
+      `<button class="pname-btn" onclick="login('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">${esc(n)}</button>`
     ).join('');
   }catch(e){
     const names=extractNames(DAY1_PAIRINGS);
     if(names.length){
-      grid.innerHTML=names.map(n=>
-        `<button class="pname-btn" data-n="${esc(n)}" onclick="login(this.dataset.n)">${esc(n)}</button>`
-      ).join('');
+     grid.innerHTML=names.map(n=>
+      `<button class="pname-btn" onclick="login('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">${esc(n)}</button>`
+    ).join('');
     } else {
       grid.innerHTML='<div class="picker-loading" style="color:var(--danger);grid-column:span 2">Could not load players</div>';
     }
