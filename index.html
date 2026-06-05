@@ -1883,13 +1883,7 @@ function pinKey(k){
 }
 
 function switchTab(id){
-  // Admin verlassen → Firebase signOut
-  if(id!=='tabAdmin' && S.adminOk){
-    S.adminOk=false;
-    auth.signOut().catch(()=>{});
-    document.getElementById('adminGate').style.display='block';
-    document.getElementById('adminPanel').style.display='none';
-  }
+ 
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(id)?.classList.add('active');
