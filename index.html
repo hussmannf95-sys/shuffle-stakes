@@ -1855,7 +1855,7 @@ function pinKey(k){
       if(d) d.textContent='––––';
       return;
     }
-    if(_pin===S.adminPin){
+    if(_pin===String(S.adminPin).trim()){
       ShuffleAuth.adminSucceeded();
       const adminEmail = 'admin@shufflecup2026.com';
       auth.signInWithEmailAndPassword(adminEmail, _pin)
