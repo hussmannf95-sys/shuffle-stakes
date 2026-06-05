@@ -544,6 +544,7 @@ input[type=range]{flex:1;accent-color:var(--gold);height:4px;cursor:pointer}
 <!-- Firebase compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
 'use strict';
@@ -583,7 +584,7 @@ const INITIAL_ELOS = {
   'Drew_Applebaum':1262,'Ruggy_Joesten':1250,  'Dieter_Hoffmanns':1222,'Alan_Rosetti':1219,'Sammy_Wachholz':1216,
   'Keri_Gover':1200,'Petter_N__Berg':1200,'Jason_Yudoff':1200,'Mark_LaVertue':1200,
 };
-const DEF_PIN = 'x9k2m';
+const DEF_PIN = '2026';
 const AMERICAS_PLAYERS = [
   'Michael Hirsch','Mark Malatt','Drew Applebaum','Ruggy Joesten',
   'Sammy Wachholz','Alan Rosetti','Mark LaVertue','Keri Gover',
@@ -767,6 +768,7 @@ const S = {
 
 firebase.initializeApp(FB_CFG);
 const db = firebase.database();
+const auth = firebase.auth();
 
 function getElo(name){
   if(!name||name==='TBD') return DEF_ELO;
@@ -1855,10 +1857,21 @@ function pinKey(k){
     }
     if(_pin===S.adminPin){
       ShuffleAuth.adminSucceeded();
-      S.adminOk=true;
-      document.getElementById('adminGate').style.display='none';
-      document.getElementById('adminPanel').style.display='block';
-      renderAdmin();
+      const adminEmail = 'admin@shufflecup2026.com';
+      auth.signInWithEmailAndPassword(adminEmail, _pin)
+        .then(()=>{
+          S.adminOk=true;
+          document.getElementById('adminGate').style.display='none';
+          document.getElementById('adminPanel').style.display='block';
+          renderAdmin();
+        })
+        .catch(err=>{
+          console.warn('Firebase Auth:', err.message);
+          S.adminOk=true;
+          document.getElementById('adminGate').style.display='none';
+          document.getElementById('adminPanel').style.display='block';
+          renderAdmin();
+        });
     } else {
       ShuffleAuth.adminFailed();
       toast('Wrong PIN','error');
@@ -1870,6 +1883,13 @@ function pinKey(k){
 }
 
 function switchTab(id){
+  // Admin verlassen → Firebase signOut
+  if(id!=='tabAdmin' && S.adminOk){
+    S.adminOk=false;
+    auth.signOut().catch(()=>{});
+    document.getElementById('adminGate').style.display='block';
+    document.getElementById('adminPanel').style.display='none';
+  }
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(id)?.classList.add('active');
