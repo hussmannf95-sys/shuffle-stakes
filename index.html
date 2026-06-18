@@ -1633,6 +1633,7 @@ async function adminPin(){
 function openBet(matchId,side){
   if(!S.user) return;
   if(S.lockedMatches[matchId]){toast('Betting closed for this match','error');return;}
+  if(hasActiveBet(matchId)){toast('You already bet on this match — cancel your existing bet first','error');return;}
   const pairing=parsePairing(matchId,S.pairings[matchId]);
   if(!pairing) return;
   const info=parseId(matchId);
@@ -1687,15 +1688,24 @@ function updPay(){
   document.getElementById('payVal').textContent=`${total} 🪙 (+${net})`;
 }
 
+function hasActiveBet(matchId){
+  const mb=S.myBets[matchId];
+  if(!mb) return false;
+  return Object.values(mb).some(b=>!b.settled&&!b.refunded);
+}
+
 async function confirmBet(){
   const{matchId,side,o1,o2}=S.bm;
   const amt=parseInt(document.getElementById('amtSlider')?.value)||5;
   if(!matchId||!side){toast('Please select a side','error');return;}
   if(S.lockedMatches[matchId]){toast('Betting closed for this match','error');closeBet();renderMatches();return;}
+  if(hasActiveBet(matchId)){toast('You already bet on this match — cancel your existing bet first','error');closeBet();renderMatches();return;}
   if(S.coins<amt){toast('Not enough coins!','error');return;}
 
   const o=side==='player1'?o1:o2;
   const userKey=sk(S.user);
+
+  // Step 1: atomically debit coins (fails cleanly if balance insufficient)
   let ok=false;
   await db.ref(`${PATH.users}/${userKey}/coins`).transaction(c=>{
     if((c||0)<amt) return undefined;
@@ -1703,11 +1713,28 @@ async function confirmBet(){
   });
   if(!ok){toast('Coin transaction failed','error');return;}
 
-  await db.ref(`${PATH.bets}/${matchId}`).push({
-    user:S.user,side,amount:amt,odds:o,
-    placedAt:firebase.database.ServerValue.TIMESTAMP,
-    settled:false,won:null
+  // Step 2: atomically write the bet, but only if no active bet from this user exists yet.
+  // This closes the race-condition window (double-click / multiple tabs).
+  let dupe=false;
+  const txResult=await db.ref(`${PATH.bets}/${matchId}`).transaction(curr=>{
+    const existing=Object.values(curr||{}).some(b=>b.user===S.user&&!b.settled&&!b.refunded);
+    if(existing){ dupe=true; return; } // abort, no change written
+    const next={...(curr||{})};
+    next[db.ref().push().key]={
+      user:S.user,side,amount:amt,odds:o,
+      placedAt:Date.now(),
+      settled:false,won:null
+    };
+    return next;
   });
+
+  if(dupe||!txResult.committed){
+    // roll back the coin debit since no bet was actually placed
+    await db.ref(`${PATH.users}/${userKey}/coins`).transaction(c=>(c||0)+amt);
+    toast('You already bet on this match — cancel your existing bet first','error');
+    closeBet(); renderMatches();
+    return;
+  }
 
   closeBet();
   const p=parsePairing(matchId,S.pairings[matchId]);
