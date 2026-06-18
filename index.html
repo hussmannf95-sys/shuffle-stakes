@@ -568,6 +568,7 @@ const PATH = {
   elos:'shufflecup2026_betting/elos',
   settled:'shufflecup2026_betting/settled',
   cfg:'shufflecup2026_betting/config',
+  locked:'shufflecup2026_betting/lockedMatches',
 };
 
 const START = 100, MIN_BET = 1, MAX_BET = 10;
@@ -761,6 +762,7 @@ const S = {
   pairings:{}, results:{}, elos:{},
   myBets:{}, allUsers:{},
   releasedDays:0, overrideDays:0,
+  lockedMatches:{},
   adminOk:false, adminPin:DEF_PIN,
   bm:{ matchId:null, side:null, o1:1.5, o2:1.5 },
   myOrPicks:{}, orResults:{}, orSettled:{}, orLocked:false,
@@ -1086,13 +1088,14 @@ function matchCard(id){
   const hasP=pairing&&pairing.player1&&pairing.player2;
   const effectiveDays=Math.max(S.releasedDays, S.overrideDays);
   const isRel=effectiveDays>0&&info.day<=effectiveDays;
-  const isOpen=hasP&&!winner&&isRel;
+  const isLocked=!!S.lockedMatches[id];
+  const isOpen=hasP&&!winner&&isRel&&!isLocked;
   const isSettled=!!winner;
 
   const typeLabel=info.type==='singles'?'Singles':'Doubles';
   const badgeCls=info.type==='singles'?'b-sgl':'b-dbl';
   const sCls=isSettled?'settled':isOpen?'open':'locked';
-  const sTxt=isSettled?'✓ Settled':isOpen?'● Open':'🔒 Locked';
+  const sTxt=isSettled?'✓ Settled':isOpen?'● Open':isLocked?'🔒 Betting Closed':'🔒 Locked';
 
   const p1=pairing?.player1||'TBD';
   const p2=pairing?.player2||'TBD';
@@ -1246,8 +1249,9 @@ function renderAdmin(){
   const ids=allIds();
   const openIds=ids.filter(id=>{
     const p=parsePairing(id,S.pairings[id]);
-    return p&&p.player1&&p.player2&&!getWinner(S.results[id]);
+    return p&&p.player1&&p.player2&&!getWinner(S.results[id])&&!S.lockedMatches[id];
   });
+  const lockedCount=Object.keys(S.lockedMatches).filter(id=>S.lockedMatches[id]).length;
 
   const matchOpts=openIds.map(id=>`<option value="${id}">${id}</option>`).join('');
   const allOpts=ids.map(id=>{
@@ -1273,6 +1277,24 @@ function renderAdmin(){
     return o;
   })();
 
+  const roundOpts=(()=>{
+    const rounds=[...new Set(SCAFFOLD.map(id=>{const i=parseId(id);return i?`${i.type==='singles'?'S':'D'}_R${i.round}`:null;}).filter(Boolean))];
+    return rounds.map(r=>`<option value="${r}">${r}</option>`).join('');
+  })();
+
+  const lockListHtml=(()=>{
+    const withP=ids.filter(id=>{const p=parsePairing(id,S.pairings[id]);return p&&p.player1&&p.player2&&!getWinner(S.results[id]);});
+    if(!withP.length) return '<p style="font-size:.75rem;color:var(--text-dim)">No active matches yet.</p>';
+    return withP.map(id=>{
+      const p=parsePairing(id,S.pairings[id]);
+      const locked=!!S.lockedMatches[id];
+      return `<div class="admin-row" style="align-items:center;margin-bottom:.3rem">
+        <span style="flex:1;font-size:.78rem">${id}: ${esc(trunc(p.player1,12))} vs ${esc(trunc(p.player2,12))}</span>
+        <button class="btn btn-sm ${locked?'btn-red':'btn-outline'}" data-lock-toggle="${id}">${locked?'🔒 Locked':'🔓 Open'}</button>
+      </div>`;
+    }).join('');
+  })();
+
   el.innerHTML=`
   <div class="admin-sec">
     <h3>📅 Release Days for Betting</h3>
@@ -1290,6 +1312,20 @@ function renderAdmin(){
       </select>
       <button class="btn btn-gold btn-sm" id="aRelDaysBtn">Set →</button>
     </div>
+  </div>
+
+  <div class="admin-sec">
+    <h3>🔒 Lock Betting</h3>
+    <p style="font-size:.75rem;color:var(--text-dim);margin-bottom:.6rem">
+      Schließt Wetten für ein Match — unabhängig von Day-Release. Nutze das bei Spielbeginn, damit niemand mehr während des Matches wetten kann.
+      Aktuell gesperrt: <strong style="color:var(--gold)">${lockedCount}</strong>
+    </p>
+    <div class="admin-row">
+      <select id="aLockRoundSel">${roundOpts}</select>
+      <button class="btn btn-red btn-sm" id="aLockRoundBtn">🔒 Lock Round</button>
+      <button class="btn btn-outline btn-sm" id="aUnlockRoundBtn">🔓 Unlock Round</button>
+    </div>
+    <div style="margin-top:.6rem;max-height:260px;overflow-y:auto">${lockListHtml}</div>
   </div>
 
   <div class="admin-sec">
@@ -1387,6 +1423,32 @@ function renderAdmin(){
     await db.ref(`${PATH.cfg}/releasedDaysOverride`).set(v);
     toast(`Betting unlocked for Day ${v} ✓`,'success');
     renderAdmin();
+  });
+  document.getElementById('aLockRoundBtn')?.addEventListener('click', async ()=>{
+    const r=document.getElementById('aLockRoundSel')?.value;
+    if(!r) return;
+    const matchIds=SCAFFOLD.filter(id=>id.startsWith(r+'_M'));
+    const updates={};
+    matchIds.forEach(id=>updates[id]=true);
+    await db.ref(PATH.locked).update(updates);
+    toast(`${r} gesperrt — Wetten geschlossen ✓`,'success');
+  });
+  document.getElementById('aUnlockRoundBtn')?.addEventListener('click', async ()=>{
+    const r=document.getElementById('aLockRoundSel')?.value;
+    if(!r) return;
+    const matchIds=SCAFFOLD.filter(id=>id.startsWith(r+'_M'));
+    const updates={};
+    matchIds.forEach(id=>updates[id]=null);
+    await db.ref(PATH.locked).update(updates);
+    toast(`${r} entsperrt ✓`,'success');
+  });
+  el.querySelectorAll('[data-lock-toggle]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id=btn.getAttribute('data-lock-toggle');
+      const nowLocked=!S.lockedMatches[id];
+      await db.ref(`${PATH.locked}/${id}`).set(nowLocked?true:null);
+      toast(nowLocked?`${id} gesperrt ✓`:`${id} entsperrt ✓`,'success');
+    });
   });
   document.getElementById('aLoadDay1Btn')?.addEventListener('click', adminLoadDay1);
   document.getElementById('aSeedEloBtn')?.addEventListener('click', adminSeedElos);
@@ -1570,6 +1632,7 @@ async function adminPin(){
 
 function openBet(matchId,side){
   if(!S.user) return;
+  if(S.lockedMatches[matchId]){toast('Betting closed for this match','error');return;}
   const pairing=parsePairing(matchId,S.pairings[matchId]);
   if(!pairing) return;
   const info=parseId(matchId);
@@ -1628,6 +1691,7 @@ async function confirmBet(){
   const{matchId,side,o1,o2}=S.bm;
   const amt=parseInt(document.getElementById('amtSlider')?.value)||5;
   if(!matchId||!side){toast('Please select a side','error');return;}
+  if(S.lockedMatches[matchId]){toast('Betting closed for this match','error');closeBet();renderMatches();return;}
   if(S.coins<amt){toast('Not enough coins!','error');return;}
 
   const o=side==='player1'?o1:o2;
@@ -1782,6 +1846,12 @@ function startListeners(userKey){
   db.ref(PATH.relDays).on('value',snap=>{
     S.releasedDays=snap.val()||0;
     renderMatches();
+  });
+
+  db.ref(PATH.locked).on('value',snap=>{
+    S.lockedMatches=snap.val()||{};
+    renderMatches();
+    if(S.adminOk) renderAdmin();
   });
 
   db.ref(`${PATH.users}/${userKey}`).on('value',snap=>{
