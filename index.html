@@ -774,7 +774,9 @@ const auth = firebase.auth();
 
 function getElo(name){
   if(!name||name==='TBD') return DEF_ELO;
-  return S.elos[sk(name)]?.elo ?? DEF_ELO;
+  // Quoten basieren ab sofort ausschließlich auf den statischen Vor-Turnier-ELOs
+  // (INITIAL_ELOS), nicht mehr auf der live mitlaufenden S.elos-Tabelle.
+  return INITIAL_ELOS[sk(name)] ?? DEF_ELO;
 }
 function getPlayerEloVal(name){
   const key=NAME_TO_KEY[name];
@@ -918,18 +920,11 @@ async function settle(matchId, resultRaw){
   for(const[u,amt] of Object.entries(pay)){
     await db.ref(`${PATH.users}/${sk(u)}/coins`).transaction(c=>(c||0)+amt);
   }
-  const pairing=parsePairing(matchId,S.pairings[matchId]);
-  if(pairing){
-    if(pairing.type==='singles'){
-      const wn=winner==='player1'?pairing.player1:pairing.player2;
-      const ln=winner==='player1'?pairing.player2:pairing.player1;
-      await eloSingles(wn,ln);
-    } else {
-      const wp_=winner==='player1'?[pairing.player1_p1,pairing.player1_p2]:[pairing.player2_p1,pairing.player2_p2];
-      const lp_=winner==='player1'?[pairing.player2_p1,pairing.player2_p2]:[pairing.player1_p1,pairing.player1_p2];
-      await eloDoubles(wp_,lp_);
-    }
-  }
+  // Hinweis: Die frühere Live-ELO-Anpassung (eloSingles/eloDoubles) wurde entfernt.
+  // Quoten basieren ab sofort ausschließlich auf den statischen INITIAL_ELOS
+  // und werden nicht mehr durch Matchergebnisse verändert. Die Funktionen
+  // eloSingles()/eloDoubles() bleiben im Code (aktuell ungenutzt), falls sie
+  // später wieder benötigt werden.
 }
 
 async function eloSingles(wName,lName){
