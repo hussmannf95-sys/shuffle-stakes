@@ -838,7 +838,11 @@ function parsePairing(matchId, raw){
 
 function getWinner(raw){
   if(!raw) return null;
-  if(typeof raw==='string') return raw;
+  if(typeof raw==='string'){
+    if(raw==='A') return'player1';
+    if(raw==='E') return'player2';
+    return raw;
+  }
   if(raw.winner) return raw.winner;
   if(raw.score1!=null&&raw.score2!=null) return +raw.score1>+raw.score2?'player1':'player2';
   return null;
